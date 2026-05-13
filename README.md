@@ -2,12 +2,24 @@
 
 ## Overview
 
-AI Mock Interview Platform is a team project that helps users practice technical interviews through AI-generated mock interview sessions. Users are presented with AI-curated
-interview questionsallowing them to simulate
+The AI Mock Interview Platform is a web application designed to help software engineering
+candidates prepare for technical job interviews. Users are presented with AI-curated
+interview questions allowing them to simulate
 realistic interview conditions and identify skill gaps before the real thing. The platform
 is built on a cloud-native microservice architecture: a React frontend communicates with a
 Spring Boot REST backend, with a dedicated AI service planned for dynamic question
 generation and answer feedback.
+
+---
+
+## Repository Structure
+
+| Folder | Description |
+|--------|-------------|
+| `client/` | React + Vite frontend application |
+| `server/` | Spring Boot REST API (interview question service) |
+| `infra/` | Infrastructure configuration (planned) |
+| `README.md` | Project overview, local setup, repository structure, and team information |
 
 ---
 
@@ -23,24 +35,16 @@ generation and answer feedback.
 
 ### Backend Setup
 
-## Run Backend Service
-
 ```bash
 cd server
 ./mvnw spring-boot:run
 ```
 
-Backend runs at:
-
-```text
-http://localhost:8080
-```
-
----
+Runs at `http://localhost:8080`
 
 ### Frontend Setup
 
-##Create the environment file first:
+Create the environment file first:
 
 ```bash
 cd client
@@ -48,24 +52,22 @@ cp .env.example .env
 ```
 
 `.env.example`:
+```
+VITE_API_BASE_URL=http://localhost:8080
+```
 
-## Run Client Application
+Then install and start:
 
 ```bash
-cd client
 npm install
 npm run dev
 ```
 
-Client runs at:
-
-```text
-http://localhost:5173
-```
+Runs at `http://localhost:5173`
 
 ---
 
-# Implemented REST Endpoint
+## REST Endpoints
 
 | Method | Path | Description |
 |--------|------|-------------|
@@ -73,18 +75,7 @@ http://localhost:5173
 
 ---
 
-## Repository Structure
-
-| Folder | Description |
-|--------|-------------|
-| `client/` | React + Vite frontend application |
-| `server/` | Spring Boot REST API (backend service) |
-| `infra/` | Infrastructure configuration |
-| `README.md` | Project overview, setup, and team information |
-
----
-
-## Team Members
+## Team
 
 | Name | GitHub | Primary Subsystem |
 |------|--------|-------------------|
