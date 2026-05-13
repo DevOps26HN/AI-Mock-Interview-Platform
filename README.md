@@ -39,6 +39,28 @@ http://localhost:8080
 
 ---
 
+# Frontend Setup
+
+## Requirements
+
+- Node.js (v18+)
+
+## Run Client Application
+
+```bash
+cd client
+npm install
+npm run dev
+```
+
+Client runs at:
+
+```text
+http://localhost:5173
+```
+
+---
+
 # Implemented REST Endpoint
 
 ```text
