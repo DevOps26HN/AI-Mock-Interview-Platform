@@ -63,6 +63,16 @@ Runs at `http://localhost:5173`
 
 ---
 
+## Git Workflow
+
+- Create a dedicated feature branch for each task or feature.
+- Do not push directly to the `main` branch.
+- Open a Pull Request (PR) for every completed feature or change.
+- At least one team member must review and approve the PR before merging.
+- Test the application locally before approving or merging changes.
+- Delete merged feature branches to keep the repository clean and organized.
+
+---
 ## Team
 
 | Name | GitHub | Primary Subsystem |
