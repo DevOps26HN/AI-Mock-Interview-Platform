@@ -55,9 +55,7 @@ http://localhost:8080/api/interview/questions
 
 # Git Workflow
 
-- No direct commits to `main`
-- Features are developed in separate branches
-- Changes are merged via Pull Requests
+
 
 ---
 
@@ -65,6 +63,6 @@ http://localhost:8080/api/interview/questions
 
 | Name | GitHub Username | Primary Subsystem |
 |---|---|---|
-| Thanawan Panapongpaisan | suisuiss | Client |
+| Thanawan Panapongpaisan | suisuiss | AI Component |
 | Yong-Tien Wu | lennawy | Server |
-| Han Hu | huhan606 | AI Component |
+| Han Hu | huhan606 | Client |
