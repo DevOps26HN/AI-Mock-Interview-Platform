@@ -14,13 +14,13 @@ generation and answer feedback.
 
 ## Repository Structure
 
-| Folder | Description |
-|--------|-------------|
-| `client/` | React + Vite frontend application |
-| `server/` | Spring Boot REST API (interview question service) |
-| `infra/` | Infrastructure configuration  |
-| `.github/workflows/` | CI/CD workflows |
-| `README.md` | Project overview, local setup, repository structure, and team information |
+| Folder               | Description                                                               |
+| -------------------- | ------------------------------------------------------------------------- |
+| `client/`            | React + Vite frontend application                                         |
+| `server/`            | Spring Boot REST API (interview question service)                         |
+| `infra/`             | Infrastructure configuration                                              |
+| `.github/workflows/` | CI/CD workflows                                                           |
+| `README.md`          | Project overview, local setup, repository structure, and team information |
 
 ---
 
@@ -28,11 +28,11 @@ generation and answer feedback.
 
 ### Prerequisites
 
-| Tool | Minimum Version |
-|------|----------------|
-| Java | 17 |
-| Node.js | 18 |
-| npm | 9 |
+| Tool    | Minimum Version |
+| ------- | --------------- |
+| Java    | 17              |
+| Node.js | 18              |
+| npm     | 9               |
 
 ### Backend Setup
 
@@ -57,9 +57,9 @@ Runs at `http://localhost:5173`
 
 ## REST Endpoints
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/api/interview/questions` | Returns all interview questions |
+| Method | Path                       | Description                     |
+| ------ | -------------------------- | ------------------------------- |
+| GET    | `/api/interview/questions` | Returns all interview questions |
 
 ---
 
@@ -68,15 +68,16 @@ Runs at `http://localhost:5173`
 - Create a dedicated feature branch for each task or feature.
 - Do not push directly to the `main` branch.
 - Open a Pull Request (PR) for every completed feature or change.
-- At least one team member must review and approve the PR before merging.
+- All team member must review and approve the PR before merging.
 - Test the application locally before approving or merging changes.
 - Delete merged feature branches to keep the repository clean and organized.
 
 ---
+
 ## Team
 
-| Name | GitHub | Primary Subsystem |
-|------|--------|-------------------|
-| Thanawan Panapongpaisan | [@suisuiss](https://github.com/suisuiss) | AI Component |
-| Yong-Tien Wu | [@lennawy](https://github.com/lennawy) | Server |
-| Han Hu | [@huhan606](https://github.com/huhan606) | Client |
+| Name                    | GitHub                                   | Primary Subsystem |
+| ----------------------- | ---------------------------------------- | ----------------- |
+| Thanawan Panapongpaisan | [@suisuiss](https://github.com/suisuiss) | AI Component      |
+| Yong-Tien Wu            | [@lennawy](https://github.com/lennawy)   | Server            |
+| Han Hu                  | [@huhan606](https://github.com/huhan606) | Client            |
