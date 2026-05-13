@@ -1,4 +1,4 @@
-package com.apex_predators.interview_service;
+package com.apexpredators.interview_service;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

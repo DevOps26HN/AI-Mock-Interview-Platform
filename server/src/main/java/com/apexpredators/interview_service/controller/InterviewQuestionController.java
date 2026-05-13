@@ -1,7 +1,7 @@
-package com.apex_predators.interview_service.controller;
+package com.apexpredators.interview_service.controller;
 
-import com.apex_predators.interview_service.model.InterviewQuestion;
-import com.apex_predators.interview_service.service.InterviewQuestionService;
+import com.apexpredators.interview_service.model.InterviewQuestion;
+import com.apexpredators.interview_service.service.InterviewQuestionService;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;

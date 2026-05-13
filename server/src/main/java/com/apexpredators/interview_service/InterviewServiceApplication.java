@@ -1,4 +1,4 @@
-package com.apex_predators.interview_service;
+package com.apexpredators.interview_service;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

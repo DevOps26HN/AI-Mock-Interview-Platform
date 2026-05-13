@@ -1,6 +1,6 @@
-package com.apex_predators.interview_service.repository;
+package com.apexpredators.interview_service.repository;
 
-import com.apex_predators.interview_service.model.InterviewQuestion;
+import com.apexpredators.interview_service.model.InterviewQuestion;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;

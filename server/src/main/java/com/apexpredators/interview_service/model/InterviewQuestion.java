@@ -1,4 +1,4 @@
-package com.apex_predators.interview_service.model;
+package com.apexpredators.interview_service.model;
 
 public class InterviewQuestion {
     private Long id;
