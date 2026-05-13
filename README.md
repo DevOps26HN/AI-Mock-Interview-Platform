@@ -1,28 +1,27 @@
 # AI Mock Interview Platform
 
-AI Mock Interview Platform is a team project that helps users practice technical interviews through AI-generated mock interview sessions.
+## Overview
 
-The platform is designed with a cloud-native microservice architecture consisting of a Spring Boot backend, a frontend client application, and a future AI service for question generation and feedback.
-
----
-
-# Repository Structure
-
-```text
-AI-Mock-Interview-Platform/
-├── client/                 # Frontend application
-├── server/                 # Spring Boot backend service
-├── infra/                  # Infrastructure configuration
-└── README.md
-```
+AI Mock Interview Platform is a team project that helps users practice technical interviews through AI-generated mock interview sessions. Users are presented with AI-curated
+interview questionsallowing them to simulate
+realistic interview conditions and identify skill gaps before the real thing. The platform
+is built on a cloud-native microservice architecture: a React frontend communicates with a
+Spring Boot REST backend, with a dedicated AI service planned for dynamic question
+generation and answer feedback.
 
 ---
 
-# Backend Setup
+## Local Setup
 
-## Requirements
+### Prerequisites
 
-- Java 17+
+| Tool | Minimum Version |
+|------|----------------|
+| Java | 17 |
+| Node.js | 18 |
+| npm | 9 |
+
+### Backend Setup
 
 ## Run Backend Service
 
@@ -39,11 +38,16 @@ http://localhost:8080
 
 ---
 
-# Frontend Setup
+### Frontend Setup
 
-## Requirements
+##Create the environment file first:
 
-- Node.js (v18+)
+```bash
+cd client
+cp .env.example .env
+```
+
+`.env.example`:
 
 ## Run Client Application
 
@@ -63,28 +67,27 @@ http://localhost:5173
 
 # Implemented REST Endpoint
 
-```text
-GET /api/interview/questions
-```
-
-Example:
-
-```text
-http://localhost:8080/api/interview/questions
-```
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/interview/questions` | Returns all interview questions |
 
 ---
 
-# Git Workflow
+## Repository Structure
 
-
+| Folder | Description |
+|--------|-------------|
+| `client/` | React + Vite frontend application |
+| `server/` | Spring Boot REST API (backend service) |
+| `infra/` | Infrastructure configuration |
+| `README.md` | Project overview, setup, and team information |
 
 ---
 
-# Team Members
+## Team Members
 
-| Name | GitHub Username | Primary Subsystem |
-|---|---|---|
-| Thanawan Panapongpaisan | suisuiss | AI Component |
-| Yong-Tien Wu | lennawy | Server |
-| Han Hu | huhan606 | Client |
+| Name | GitHub | Primary Subsystem |
+|------|--------|-------------------|
+| Thanawan Panapongpaisan | [@suisuiss](https://github.com/suisuiss) | AI Component |
+| Yong-Tien Wu | [@lennawy](https://github.com/lennawy) | Server |
+| Han Hu | [@huhan606](https://github.com/huhan606) | Client |
