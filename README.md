@@ -44,21 +44,8 @@ Runs at `http://localhost:8080`
 
 ### Frontend Setup
 
-Create the environment file first:
-
 ```bash
 cd client
-cp .env.example .env
-```
-
-`.env.example`:
-```
-VITE_API_BASE_URL=http://localhost:8080
-```
-
-Then install and start:
-
-```bash
 npm install
 npm run dev
 ```
