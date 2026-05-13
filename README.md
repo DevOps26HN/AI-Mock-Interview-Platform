@@ -18,7 +18,8 @@ generation and answer feedback.
 |--------|-------------|
 | `client/` | React + Vite frontend application |
 | `server/` | Spring Boot REST API (interview question service) |
-| `infra/` | Infrastructure configuration (planned) |
+| `infra/` | Infrastructure configuration  |
+| `.github/workflows/` | CI/CD workflows |
 | `README.md` | Project overview, local setup, repository structure, and team information |
 
 ---
