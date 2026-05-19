@@ -9,7 +9,8 @@ function App() {
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
-        const response = await fetch('http://localhost:8080/api/interview/questions');
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+        const response = await fetch(`${apiUrl}/api/interview/questions`);
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
