@@ -1,0 +1,17 @@
+.env
+target/
+node_modules/
+.DS_Store
+.idea/
+*.class
+*.jar
+*.war
+*.ear
+*.log
+*.sh
+.gradle/
+build/
+.settings/
+.classpath
+.project
+.factorypath

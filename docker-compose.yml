@@ -1,10 +1,33 @@
 services:
+  db:
+    image: postgres:16
+    container_name: interview-db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
   server:
     build:
       context: ./server
       dockerfile: Dockerfile
+    container_name: interview-server
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
     ports:
       - "8080:8080"
+    depends_on:
+      - db
     networks:
       - app-network
 
@@ -13,7 +36,8 @@ services:
       context: ./client
       dockerfile: Dockerfile
       args:
-        VITE_API_URL: ""
+        VITE_API_URL: ${VITE_API_URL}
+    container_name: interview-client
     ports:
       - "3000:80"
     depends_on:
@@ -24,3 +48,6 @@ services:
 networks:
   app-network:
     driver: bridge
+
+volumes:
+  postgres_data:
