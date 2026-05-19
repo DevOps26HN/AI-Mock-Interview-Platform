@@ -24,15 +24,42 @@ generation and answer feedback.
 
 ---
 
-## Local Setup
+## Setup Guide
 
-### Prerequisites
+### Option 1: Run with Docker (Recommended)
 
-| Tool    | Minimum Version |
-| ------- | --------------- |
-| Java    | 21 or newer     |
-| Node.js | 18              |
-| npm     | 9               |
+This option allows the application to run without manually installing Java, Maven, Node.js, or npm locally.
+
+#### Prerequisites
+
+| Tool | Required Version |
+|------|------------------|
+| Docker | Latest stable version |
+
+---
+
+### Run the Full System with Docker Compose
+
+The entire system can be started with a single command:
+```bash 
+docker compose up --build
+```
+
+This will automatically start all configured services and containers.
+
+The services will be available at:
+- Frontend: http://localhost:5173
+- Backend: http://localhost:8080
+
+### Option 2: Local Setup
+Use this option if you want to run and modify each service locally during development.
+
+#### Prerequisites
+| Tool    | Required Version |
+| ------- | ---------------- |
+| Java    | 21 or newer      |
+| Node.js | 22 or newer      |
+| npm     | 9                |
 
 ### Backend Setup
 
@@ -41,7 +68,7 @@ cd server
 ./mvnw spring-boot:run
 ```
 
-Runs at `http://localhost:8080`
+Backend runs at `http://localhost:8080`
 
 ### Frontend Setup
 
@@ -74,10 +101,11 @@ Runs at `http://localhost:5173`
 
 ---
 
-## Team
+## Team Members
 
 | Name                    | GitHub                                   | Primary Subsystem |
 | ----------------------- | ---------------------------------------- | ----------------- |
 | Thanawan Panapongpaisan | [@suisuiss](https://github.com/suisuiss) | AI Component      |
 | Yong-Tien Wu            | [@lennawy](https://github.com/lennawy)   | Server            |
 | Han Hu                  | [@huhan606](https://github.com/huhan606) | Client            |
+
