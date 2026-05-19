@@ -35,6 +35,8 @@ cp .env.example .env
 docker compose up --build
 ```
 
+The services will be available at: http://localhost:3000
+
 ### Exposed Ports
 
 | Component | Host Port | Internal Port |
