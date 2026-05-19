@@ -70,8 +70,8 @@ The project uses a `.env` file for configuration. Sane defaults are provided in 
 | Tool    | Minimum Version |
 | ------- | --------------- |
 | Java    | 21 or newer     |
-| Node.js | 18              |
-| npm     | 9               |
+| Node.js | 22 or newer     |
+| npm     | 9 or newer      | 
 | Postgres| 16              |
 
 ### Backend Setup
