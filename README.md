@@ -30,7 +30,7 @@ generation and answer feedback.
 
 | Tool    | Minimum Version |
 | ------- | --------------- |
-| Java    | 17              |
+| Java    | 21 or newer     |
 | Node.js | 18              |
 | npm     | 9               |
 
