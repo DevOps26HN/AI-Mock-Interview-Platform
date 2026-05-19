@@ -30,7 +30,7 @@ generation and answer feedback.
 
 This option allows the application to run without manually installing Java, Maven, Node.js, or npm locally.
 
-#### Prerequisites
+### Prerequisites
 
 | Tool | Required Version |
 |------|------------------|
@@ -47,14 +47,12 @@ docker compose up --build
 
 This will automatically start all configured services and containers.
 
-The services will be available at:
-- Frontend: http://localhost:5173
-- Backend: http://localhost:8080
+The services will be available at: `http://localhost:5173`
 
 ### Option 2: Local Setup
 Use this option if you want to run and modify each service locally during development.
 
-#### Prerequisites
+### Prerequisites
 | Tool    | Required Version |
 | ------- | ---------------- |
 | Java    | 21 or newer      |
