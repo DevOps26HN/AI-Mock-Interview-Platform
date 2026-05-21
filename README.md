@@ -9,12 +9,24 @@ realistic interview conditions and identify skill gaps before the real thing.
 
 ---
 
+## Live Application URL (Active for Evaluation Window)
+
+> [!NOTE]
+> The Public IP is provisioned using **Static Standard SKU** to ensure persistency during the grading window. 
+> If the infrastructure is completely destroyed and recreated via Terraform, the operator must update these links with the new CLI outputs.
+
+* **Frontend Access**: [http://4.223.67.81:3000](http://4.223.67.81:3000)
+* **SSH Management**: `ssh azureuser@4.223.67.81`
+
+---
+
 ## Repository Structure
 
 | Folder               | Description                                                               |
 | -------------------- | ------------------------------------------------------------------------- |
 | `client/`            | React + Vite frontend application                                         |
 | `server/`            | Spring Boot REST API (interview question service)                         |
+| `terraform/`         | Production-grade Terraform configurations for provisioning Azure VM       |
 | `infra/`             | Infrastructure configuration                                              |
 | `.github/workflows/` | CI/CD workflows                                                           |
 | `docker-compose.yml` | Orchestrates the full system (Client, Server, DB)                         |
