@@ -15,3 +15,11 @@ build/
 .classpath
 .project
 .factorypath
+
+# Terraform-specific ignores for security and state management
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfvars
+*.tfvars.json
+.terraform.lock.hcl
