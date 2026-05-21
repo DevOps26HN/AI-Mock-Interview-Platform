@@ -15,8 +15,8 @@ realistic interview conditions and identify skill gaps before the real thing.
 > The Public IP is provisioned using **Static Standard SKU** to ensure persistency during the grading window. 
 > If the infrastructure is completely destroyed and recreated via Terraform, the operator must update these links with the new CLI outputs.
 
-* **Frontend Access**: [http://4.223.67.81:3000](http://4.223.67.81:3000)
-* **SSH Management**: `ssh azureuser@4.223.67.81`
+* **Frontend Access**: [http://20.91.133.112:3000](http://20.91.133.112:3000)
+* **SSH Management**: `ssh azureuser@20.91.133.112`
 
 ---
 
