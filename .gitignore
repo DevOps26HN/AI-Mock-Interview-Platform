@@ -23,3 +23,7 @@ build/
 *.tfvars
 *.tfvars.json
 .terraform.lock.hcl
+
+# Ansible-specific ignores for local config and secrets
+ansible/inventory.ini
+ansible/vars.yml
