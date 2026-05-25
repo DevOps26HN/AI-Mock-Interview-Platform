@@ -1,0 +1,158 @@
+# ==============================================================================
+# Ansible Deployment Playbook (playbook.yml)
+# ==============================================================================
+# This playbook configures a bare Ubuntu VM, installs Docker & Docker Compose,
+# places the project codebase on the VM, generates dynamic configuration, and
+# starts the full containerized Mock Interview Platform.
+#
+# Usage:
+#   ansible-playbook -i ansible/inventory.ini ansible/playbook.yml
+# ==============================================================================
+
+- name: Configure VM and Deploy Mock Interview Platform
+  hosts: webservers
+  become: true
+  gather_facts: true
+
+  vars_files:
+    # Safely load sensitive variables. Fallback to example if vars.yml is not yet created.
+    - [ "vars.yml", "vars.yml.example" ]
+
+  tasks:
+    # --------------------------------------------------------------------------
+    # 1. System Package Setup & Prerequisites
+    # --------------------------------------------------------------------------
+    - name: Update apt package cache
+      ansible.builtin.apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Install prerequisite system packages
+      ansible.builtin.apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+          - software-properties-common
+        state: present
+
+    # --------------------------------------------------------------------------
+    # 2. Docker & Docker Compose Installation
+    # --------------------------------------------------------------------------
+    - name: Ensure /etc/apt/keyrings directory exists
+      ansible.builtin.file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: '0755'
+
+    - name: Download Docker's official GPG key
+      ansible.builtin.get_url:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        dest: /etc/apt/keyrings/docker.asc
+        mode: '0644'
+        force: true
+
+    - name: Add Docker's official APT repository
+      ansible.builtin.apt_repository:
+        repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+        state: present
+        filename: docker
+
+    - name: Install Docker CE, CLI, and Docker Compose plugin
+      ansible.builtin.apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-compose-plugin
+        state: present
+        update_cache: yes
+
+    - name: Ensure Docker service is running and enabled on boot
+      ansible.builtin.service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Add default admin user to the docker group
+      ansible.builtin.user:
+        name: "{{ ansible_user | default('azureuser') }}"
+        groups: docker
+        append: yes
+
+    # --------------------------------------------------------------------------
+    # 3. Application Placement & Directory Configuration
+    # --------------------------------------------------------------------------
+    - name: Create application target directory on VM
+      ansible.builtin.file:
+        path: "/home/{{ ansible_user | default('azureuser') }}/app"
+        state: directory
+        owner: "{{ ansible_user | default('azureuser') }}"
+        group: "{{ ansible_user | default('azureuser') }}"
+        mode: '0755'
+
+    - name: Copy docker-compose.yml config to VM
+      ansible.builtin.copy:
+        src: ../docker-compose.yml
+        dest: "/home/{{ ansible_user | default('azureuser') }}/app/docker-compose.yml"
+        owner: "{{ ansible_user | default('azureuser') }}"
+        group: "{{ ansible_user | default('azureuser') }}"
+        mode: '0644'
+
+    - name: Copy backend server codebase to VM
+      ansible.builtin.copy:
+        src: ../server
+        dest: "/home/{{ ansible_user | default('azureuser') }}/app/"
+        owner: "{{ ansible_user | default('azureuser') }}"
+        group: "{{ ansible_user | default('azureuser') }}"
+        mode: '0755'
+
+    - name: Copy frontend client codebase to VM
+      ansible.builtin.copy:
+        src: ../client
+        dest: "/home/{{ ansible_user | default('azureuser') }}/app/"
+        owner: "{{ ansible_user | default('azureuser') }}"
+        group: "{{ ansible_user | default('azureuser') }}"
+        mode: '0755'
+
+    # --------------------------------------------------------------------------
+    # 4. Configuration and Environment Setup
+    # --------------------------------------------------------------------------
+    - name: Generate secure .env configuration file on VM
+      ansible.builtin.template:
+        src: templates/.env.j2
+        dest: "/home/{{ ansible_user | default('azureuser') }}/app/.env"
+        owner: "{{ ansible_user | default('azureuser') }}"
+        group: "{{ ansible_user | default('azureuser') }}"
+        mode: '0600' # Restrictive read-only permissions for database password security
+
+    # --------------------------------------------------------------------------
+    # 5. Service Orchestration & Verification
+    # --------------------------------------------------------------------------
+    - name: Build images and start application containers (Idempotent compose call)
+      ansible.builtin.command: docker compose up -d --build
+      args:
+        chdir: "/home/{{ ansible_user | default('azureuser') }}/app"
+      register: compose_output
+      changed_when: >
+        'Created' in compose_output.stdout or
+        'Started' in compose_output.stdout or
+        'Recreated' in compose_output.stdout or
+        'Built' in compose_output.stdout or
+        'Created' in compose_output.stderr or
+        'Started' in compose_output.stderr or
+        'Recreated' in compose_output.stderr or
+        'Built' in compose_output.stderr
+
+    - name: Verify running application container statuses
+      ansible.builtin.command: docker compose ps
+      args:
+        chdir: "/home/{{ ansible_user | default('azureuser') }}/app"
+      register: ps_output
+      changed_when: false
+
+    - name: Display status of running containers
+      ansible.builtin.debug:
+        var: ps_output.stdout_lines

@@ -1,0 +1,15 @@
+# ==============================================================================
+# Ansible External Variables Template (vars.yml.example)
+# ==============================================================================
+# Instructions:
+# 1. Copy this file to 'vars.yml':
+#    cp vars.yml.example vars.yml
+# 2. Change the default credentials below to secure production passwords.
+# 3. Running Ansible will automatically read 'vars.yml' and inject these values
+#    securely into the VM's application configuration without committing them.
+# ==============================================================================
+
+# PostgreSQL Database Configuration
+db_name: "interview_db"
+db_user: "postgres"
+db_password: "ChangeMeToASecurePassword123!" # Change this to a secure database password
