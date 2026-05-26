@@ -14,11 +14,31 @@
   become: true
   gather_facts: true
 
-  vars_files:
-    # Safely load sensitive variables. Fallback to example if vars.yml is not yet created.
-    - [ "vars.yml", "vars.yml.example" ]
-
   tasks:
+    # --------------------------------------------------------------------------
+    # 0. Pre-deployment Local Validations
+    # --------------------------------------------------------------------------
+    - name: Verify that vars.yml exists locally
+      ansible.builtin.stat:
+        path: "{{ playbook_dir }}/vars.yml"
+      register: vars_file_status
+      delegate_to: localhost
+      become: false
+
+    - name: Fail loudly if vars.yml is missing
+      ansible.builtin.fail:
+        msg: >
+          CRITICAL ERROR: 'ansible/vars.yml' was not found!
+          For security, silent deployments using fallback examples are prohibited.
+          Please copy 'vars.yml.example' to 'vars.yml' and customize your secrets before proceeding.
+      when: not vars_file_status.stat.exists
+      delegate_to: localhost
+      become: false
+
+    - name: Load sensitive external variables from vars.yml
+      ansible.builtin.include_vars:
+        file: "{{ playbook_dir }}/vars.yml"
+
     # --------------------------------------------------------------------------
     # 1. System Package Setup & Prerequisites
     # --------------------------------------------------------------------------
@@ -56,7 +76,7 @@
 
     - name: Add Docker's official APT repository
       ansible.builtin.apt_repository:
-        repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+        repo: "deb [arch={{ ansible_architecture | replace('x86_64', 'amd64') | replace('aarch64', 'arm64') }} signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
         state: present
         filename: docker
 
