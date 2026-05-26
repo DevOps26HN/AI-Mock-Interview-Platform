@@ -27,11 +27,38 @@ realistic interview conditions and identify skill gaps before the real thing.
 | `client/`            | React + Vite frontend application                                         |
 | `server/`            | Spring Boot REST API (interview question service)                         |
 | `terraform/`         | Production-grade Terraform configurations for provisioning Azure VM       |
+| `ansible/`           | Ansible playbooks for VM configuration and application deployment         |
 | `infra/`             | Infrastructure configuration                                              |
 | `.github/workflows/` | CI/CD workflows                                                           |
 | `docker-compose.yml` | Orchestrates the full system (Client, Server, DB)                         |
 | `.env.example`       | Template for environment variables                                        |
 | `README.md`          | Project overview, setup instructions, and repository structure            |
+
+---
+
+## Cloud Deployment (Ansible)
+
+Once the Azure VM is provisioned via Terraform, use Ansible to configure the bare OS, install Docker, and deploy the application.
+
+### Secret and Configuration Handling
+To ensure no credentials are committed to the repository, we use localized configuration files ignored by Git (`.gitignore`).
+
+1. **Prepare Configuration Files**:
+   Navigate to the `ansible/` directory and create local copies of the templates:
+   ```bash
+   cd ansible
+   cp inventory.ini.example inventory.ini
+   cp vars.yml.example vars.yml
+   ```
+2. **Set Environment Variables (No secrets in Git)**:
+   *   Edit `inventory.ini`: Replace `YOUR_VM_PUBLIC_IP` with the public IP of your provisioned VM.
+   *   Edit `vars.yml`: Provide secure values for your database credentials (`db_name`, `db_user`, `db_password`).
+
+### Deployment Command
+Run the idempotent Ansible playbook to completely configure the VM and start the platform:
+```bash
+ansible-playbook -i inventory.ini playbook.yml
+```
 
 ---
 
