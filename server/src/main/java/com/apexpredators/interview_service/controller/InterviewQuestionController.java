@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@CrossOrigin(origins = { "http://localhost:5173", "http://localhost:3000" })
+@CrossOrigin(origins = "*")
 public class InterviewQuestionController {
 
     private final InterviewQuestionService interviewQuestionService;
