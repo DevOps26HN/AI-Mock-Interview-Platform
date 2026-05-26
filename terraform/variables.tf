@@ -80,6 +80,12 @@ variable "frontend_port" {
   default     = 3000
 }
 
+variable "backend_port" {
+  type        = number
+  description = "The public port mapping on the host for the Spring Boot backend API container."
+  default     = 8080
+}
+
 variable "enable_http" {
   type        = bool
   description = "Toggle to open port 80 for HTTP traffic (useful if running Nginx/reverse proxy on host)."
