@@ -35,6 +35,72 @@ realistic interview conditions and identify skill gaps before the real thing.
 | `README.md`          | Project overview, setup instructions, and repository structure            |
 
 ---
+## Infrastructure Automation (Terraform)
+
+Terraform configurations are provided under the `terraform/` directory to provision the Azure infrastructure for the AI Mock Interview Platform.
+
+The setup includes:
+
+- Azure Linux Virtual Machine
+- Virtual Network & Network Security Group (NSG)
+- Static Public IP allocation
+- Secure inbound firewall rules for required application ports
+
+### Prerequisites
+
+- Terraform
+- Azure CLI
+- Azure Subscription
+- SSH public key (`~/.ssh/id_rsa.pub` by default)
+
+Login to Azure before provisioning:
+
+```bash
+az login
+```
+### Provision Infrastructure
+
+Initialize Terraform providers:
+
+```bash
+cd terraform
+terraform init
+```
+
+Review the execution plan:
+
+```bash
+terraform plan
+```
+
+Provision the Azure resources:
+
+```bash
+terraform apply
+```
+
+Terraform will output:
+
+- `vm_public_ip_address`
+- `vm_ssh_connection_string`
+
+These values are later used for the Ansible deployment workflow.
+
+### Destroy Infrastructure
+
+To remove all provisioned resources:
+
+```bash
+terraform destroy
+```
+
+### Security Notes
+
+- Sensitive local configuration files are excluded from version control.
+- Infrastructure parameters are externalized through Terraform variables.
+- Only required public ports are exposed through the Azure NSG.
+
+---
 
 ## Cloud Deployment (Ansible)
 
