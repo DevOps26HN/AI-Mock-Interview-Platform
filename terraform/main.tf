@@ -117,6 +117,21 @@ resource "azurerm_network_security_rule" "frontend" {
   network_security_group_name = azurerm_network_security_group.nsg.name
 }
 
+# Rule 2b: Spring Boot Backend (Port 8080) - Exposed to serve the server container
+resource "azurerm_network_security_rule" "backend" {
+  name                        = "Allow-Backend-Port-Inbound"
+  priority                    = 115
+  direction                   = "Inbound"
+  access                      = "Allow"
+  protocol                    = "Tcp"
+  source_port_range           = "*"
+  destination_port_range      = tostring(var.backend_port)
+  source_address_prefix       = "*"
+  destination_address_prefix  = "*"
+  resource_group_name         = azurerm_resource_group.rg.name
+  network_security_group_name = azurerm_network_security_group.nsg.name
+}
+
 # Rule 3: Standard HTTP (Port 80) - Optional, enabled by variable toggle
 resource "azurerm_network_security_rule" "http" {
   count                       = var.enable_http ? 1 : 0
