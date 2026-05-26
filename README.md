@@ -38,8 +38,6 @@ realistic interview conditions and identify skill gaps before the real thing.
 
 ## Cloud Deployment (Ansible)
 
-*Note: Infrastructure provisioning steps (Terraform) will be documented separately by another team member.*
-
 Once the Azure VM is provisioned via Terraform, use Ansible to configure the bare OS, install Docker, and deploy the application.
 
 ### Secret and Configuration Handling
