@@ -47,6 +47,9 @@ database:
   name: "interview_db"
   storageSize: "1Gi"
   existingSecret: "interview-db-secrets"
+  service:
+    port: 5432
+    targetPort: 5432
   resources:
     limits:
       cpu: "500m"

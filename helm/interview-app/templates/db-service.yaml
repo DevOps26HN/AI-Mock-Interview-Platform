@@ -8,7 +8,7 @@ spec:
   selector:
     app: interview-db-selector
   ports:
-    - port: 5432
-      targetPort: 5432
+    - port: {{ .Values.database.service.port }}
+      targetPort: {{ .Values.database.service.targetPort }}
       protocol: TCP
   type: ClusterIP
