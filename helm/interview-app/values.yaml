@@ -47,6 +47,7 @@ database:
   name: "interview_db"
   storageSize: "1Gi"
   existingSecret: "interview-db-secrets"
+  replicaCount: 1
   service:
     port: 5432
     targetPort: 5432
