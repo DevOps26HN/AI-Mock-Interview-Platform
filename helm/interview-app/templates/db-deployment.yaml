@@ -1,0 +1,43 @@
+{{- include "interview-app.validateTUMID" . -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: interview-db
+  namespace: ai-mock-interview
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: interview-db-selector
+  template:
+    metadata:
+      labels:
+        app: interview-db-selector
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: POSTGRES_DB
+              value: {{ .Values.database.name | quote }}
+            - name: POSTGRES_USER
+              value: {{ .Values.database.username | quote }}
+            - name: POSTGRES_PASSWORD
+              value: {{ .Values.database.password | quote }}
+          ports:
+            - containerPort: 5432
+          resources:
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
+          volumeMounts:
+            - name: db-data
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: db-data
+          persistentVolumeClaim:
+            claimName: db-pvc

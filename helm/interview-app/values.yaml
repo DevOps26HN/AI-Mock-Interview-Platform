@@ -33,6 +33,12 @@ server:
       value: "postgres"
   openaiApiKey: ""
 
+database:
+  name: "interview_db"
+  username: "postgres"
+  password: "postgres"
+  storageSize: "1Gi"
+
 client:
   image:
     repository: ghcr.io/devops26hn/ai-mock-interview-platform/client

@@ -1,0 +1,14 @@
+{{- include "interview-app.validateTUMID" . -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: db
+  namespace: ai-mock-interview
+spec:
+  selector:
+    app: interview-db-selector
+  ports:
+    - port: 5432
+      targetPort: 5432
+      protocol: TCP
+  type: ClusterIP
