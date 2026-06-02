@@ -3,7 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: interview-server
-  namespace: ai-mock-interview
+  namespace: {{ include "interview-app.namespace" . }}
 spec:
   replicas: {{ .Values.server.replicaCount }}
   selector:
@@ -14,17 +14,18 @@ spec:
       labels:
         app: interview-server-selector
     spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
         - name: server
           image: "{{ .Values.server.image.repository }}:{{ .Values.server.image.tag }}"
           imagePullPolicy: {{ .Values.server.image.pullPolicy }}
+          {{- with .Values.server.resources }}
           resources:
-            limits:
-              cpu: "500m"
-              memory: "512Mi"
-            requests:
-              cpu: "200m"
-              memory: "256Mi"
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           ports:
             - containerPort: {{ .Values.server.service.targetPort }}
           env:
@@ -33,13 +34,23 @@ spec:
               value: "{{ .value }}"
             {{- end }}
             - name: SERVER_PORT
-              value: "8080"
+              value: {{ .Values.server.service.targetPort | quote }}
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.database.existingSecret }}
+                  key: username
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.database.existingSecret }}
+                  key: password
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: interview-client
-  namespace: ai-mock-interview
+  namespace: {{ include "interview-app.namespace" . }}
 spec:
   replicas: {{ .Values.client.replicaCount }}
   selector:
@@ -50,16 +61,25 @@ spec:
       labels:
         app: interview-client-selector
     spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
         - name: client
           image: "{{ .Values.client.image.repository }}:{{ .Values.client.image.tag }}"
           imagePullPolicy: {{ .Values.client.image.pullPolicy }}
+          {{- with .Values.client.resources }}
           resources:
-            limits:
-              cpu: "500m"
-              memory: "256Mi"
-            requests:
-              cpu: "50m"
-              memory: "50Mi"
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           ports:
             - containerPort: {{ .Values.client.service.targetPort }}
+          volumeMounts:
+            - name: nginx-config
+              mountPath: /etc/nginx/conf.d/default.conf
+              subPath: default.conf
+      volumes:
+        - name: nginx-config
+          configMap:
+            name: client-nginx-config

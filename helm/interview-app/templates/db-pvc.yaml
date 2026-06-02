@@ -3,7 +3,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: db-pvc
-  namespace: ai-mock-interview
+  namespace: {{ include "interview-app.namespace" . }}
 spec:
   accessModes:
     - ReadWriteOnce

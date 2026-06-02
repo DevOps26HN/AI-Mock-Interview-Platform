@@ -2,10 +2,57 @@
 
 {{/*
 Helper to validate that the TUM ID is set.
-If not set or empty, it will cause Helm to fail with a message.
 */}}
 {{- define "interview-app.validateTUMID" -}}
 {{- if not .Values.tumid -}}
-{{-   fail (printf "ERROR: Your TUM ID ('tumid') is not set or is empty in 'values.yaml'.\nPlease provide your TUM ID. For example:\n  tumid: \"ga12abc\"\nFound: '%s'" .Values.tumid) -}}
+{{-   fail (printf "ERROR: Your TUM ID ('tumid') is not set or is empty in 'values.yaml'.") -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Determine the namespace to use.
+*/}}
+{{- define "interview-app.namespace" -}}
+{{- if .Values.namespace -}}
+{{- .Values.namespace -}}
+{{- else if .Values.tumid -}}
+{{- printf "%s-devops26" .Values.tumid -}}
+{{- else -}}
+{{- "default" -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Determine the ingress host.
+*/}}
+{{- define "interview-app.ingressHost" -}}
+{{- if .Values.ingress.host -}}
+{{- .Values.ingress.host -}}
+{{- else -}}
+{{- printf "ai-mock-interview-%s.stud.k8s.aet.cit.tum.de" .Values.tumid -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Expand the name of the chart.
+*/}}
+{{- define "interview-app.name" -}}
+{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{/*
+Create a default fully qualified app name.
+We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
+*/}}
+{{- define "interview-app.fullname" -}}
+{{- if .Values.fullnameOverride -}}
+{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- $name := default .Chart.Name .Values.nameOverride -}}
+{{- if contains $name .Release.Name -}}
+{{- .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
 {{- end -}}
 {{- end -}}

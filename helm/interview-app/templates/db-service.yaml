@@ -3,7 +3,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: db
-  namespace: ai-mock-interview
+  namespace: {{ include "interview-app.namespace" . }}
 spec:
   selector:
     app: interview-db-selector

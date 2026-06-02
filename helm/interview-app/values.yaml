@@ -1,13 +1,16 @@
 # This file contains the default values for the AI Mock Interview App Helm chart.
 
 # Add your tumid here
-tumid:
+tumid: ""
 
-##################################################################################################################
-# No changes needed below this line
-namespace:
-  create: false
+# Target namespace (e.g. <tum-id>-devops26)
+namespace: ""
 
+# Image Pull Secrets for GHCR
+imagePullSecrets:
+  - name: ghcr-secret
+
+# Server configuration
 server:
   image:
     repository: ghcr.io/devops26hn/ai-mock-interview-platform/server
@@ -18,6 +21,13 @@ server:
     port: 8080
     targetPort: 8080
   replicaCount: 1
+  resources:
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+    requests:
+      cpu: "200m"
+      memory: "256Mi"
   env:
     - name: SPRING_PROFILES_ACTIVE
       value: docker
@@ -27,16 +37,25 @@ server:
       value: "5432"
     - name: DB_NAME
       value: "interview_db"
-    - name: DB_USERNAME
-      value: "postgres"
-    - name: DB_PASSWORD
-      value: "postgres"
-database:
-  name: "interview_db"
-  username: "postgres"
-  password: "postgres"
-  storageSize: "1Gi"
 
+# Database configuration (Credentials should be in a Secret)
+database:
+  image:
+    repository: postgres
+    tag: "16"
+    pullPolicy: IfNotPresent
+  name: "interview_db"
+  storageSize: "1Gi"
+  existingSecret: "interview-db-secrets"
+  resources:
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+    requests:
+      cpu: "200m"
+      memory: "256Mi"
+
+# Client configuration
 client:
   image:
     repository: ghcr.io/devops26hn/ai-mock-interview-platform/client
@@ -44,13 +63,23 @@ client:
     pullPolicy: Always
   service:
     type: ClusterIP
-    port: 3000
+    port: 80
     targetPort: 80
   replicaCount: 1
+  resources:
+    limits:
+      cpu: "500m"
+      memory: "256Mi"
+    requests:
+      cpu: "50m"
+      memory: "50Mi"
 
+# Ingress configuration
 ingress:
   enabled: true
   className: "nginx"
   tls: true
+  tlsSecretName: "ai-mock-interview-tls"
   annotations:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  host: "" # Leave empty to use the dynamic host from helpers
