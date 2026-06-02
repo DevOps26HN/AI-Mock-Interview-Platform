@@ -7,7 +7,6 @@ This Helm chart deploys the **AI Mock Interview Platform** in a Kubernetes clust
 - **Kubernetes 1.22+**
 - **Helm 3.0+**
 - **TUM ID (`tumid`)**: Required for deployment identification and policy validation.
-- **OpenAI API Key (`server.openaiApiKey`)**: Required at deployment time. The installation will fail early if not provided.
 
 ---
 
@@ -18,7 +17,6 @@ The following table lists the configurable parameters of the chart and their def
 | Parameter | Description | Default | Required |
 | --- | --- | --- | --- |
 | `tumid` | Your TUM student ID (e.g., `go46rol`) | `""` | **Yes** |
-| `server.openaiApiKey` | Your OpenAI API secret key | `""` | **Yes** |
 | `server.replicaCount` | Number of backend server replicas | `1` | No |
 | `server.image.repository` | Docker image repository for the backend server | `ghcr.io/devops26hn/ai-mock-interview-platform/server` | No |
 | `server.image.tag` | Docker image tag for the backend server | `latest` | No |
@@ -46,8 +44,7 @@ To deploy the platform with your custom credentials:
 ```bash
 helm upgrade --install ai-interview ./helm/interview-app \
   --namespace ai-mock-interview \
-  --set tumid="YOUR_TUM_ID" \
-  --set server.openaiApiKey="YOUR_OPENAI_API_KEY"
+  --set tumid="YOUR_TUM_ID"
 ```
 
 ### 2. Verification
@@ -86,11 +83,7 @@ If you see errors like:
 ```text
 Error: execution error at (interview-app/templates/deployment.yaml:1:4): ERROR: Your TUM ID ('tumid') is not set...
 ```
-or
-```text
-Error: server.openaiApiKey is required. Please set server.openaiApiKey...
-```
-You must supply them explicitly using `--set` or within a private `values.yaml` file.
+You must supply it explicitly using `--set` or within your `values.yaml` file.
 
 ### 2. Backend fails with Port Conflict (NumberFormatException)
 If the backend crashes with `java.lang.NumberFormatException: For input string: "tcp://..."`, this is resolved in this version of the chart by overriding `SERVER_PORT: "8080"` directly in the container env, bypassing Kubernetes' automatic Service environment injection mechanism.
