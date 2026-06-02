@@ -1,0 +1,52 @@
+# This file contains the default values for the AI Mock Interview App Helm chart.
+
+# Add your tumid here
+tumid:
+
+##################################################################################################################
+# No changes needed below this line
+namespace:
+  create: false
+
+server:
+  image:
+    repository: ghcr.io/devops26hn/ai-mock-interview-platform/server
+    tag: latest
+    pullPolicy: Always
+  service:
+    type: ClusterIP
+    port: 8080
+    targetPort: 8080
+  replicaCount: 1
+  env:
+    - name: SPRING_PROFILES_ACTIVE
+      value: docker
+    - name: DB_HOST
+      value: "db"
+    - name: DB_PORT
+      value: "5432"
+    - name: DB_NAME
+      value: "interview_db"
+    - name: DB_USERNAME
+      value: "postgres"
+    - name: DB_PASSWORD
+      value: "postgres"
+  openaiApiKey: ""
+
+client:
+  image:
+    repository: ghcr.io/devops26hn/ai-mock-interview-platform/client
+    tag: latest
+    pullPolicy: Always
+  service:
+    type: ClusterIP
+    port: 3000
+    targetPort: 80
+  replicaCount: 1
+
+ingress:
+  enabled: true
+  className: "nginx"
+  tls: true
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
