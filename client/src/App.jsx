@@ -9,8 +9,16 @@ function App() {
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
-        const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8080';
-        const response = await fetch(`${apiUrl}/api/interview/questions`);
+        const apiUrl = import.meta.env.VITE_API_URL;
+        // If VITE_API_URL is empty or points to localhost:8080 in production,
+        // fall back to a relative path to query via the same host/ingress.
+        const actualApiUrl = (apiUrl && apiUrl !== 'http://localhost:8080')
+          ? apiUrl
+          : (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+            ? 'http://localhost:8080'
+            : '';
+
+        const response = await fetch(`${actualApiUrl}/api/interview/questions`);
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -62,8 +70,8 @@ function App() {
         {!loading && !error && questions.length > 0 && (
           <div className="questions-grid">
             {questions.map((q, index) => (
-              <div 
-                className="question-card" 
+              <div
+                className="question-card"
                 key={q.id}
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
@@ -73,9 +81,9 @@ function App() {
                     {q.difficulty}
                   </span>
                 </div>
-                
+
                 <h3 className="question-text">{q.question}</h3>
-                
+
                 <div className="card-footer">
                   <div className="category-tag">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
