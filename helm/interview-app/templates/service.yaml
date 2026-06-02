@@ -1,3 +1,4 @@
+{{- include "interview-app.validateTUMID" . -}}
 apiVersion: v1
 kind: Service
 metadata:
