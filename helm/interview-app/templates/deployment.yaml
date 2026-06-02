@@ -34,11 +34,6 @@ spec:
             {{- end }}
             - name: SERVER_PORT
               value: "8080"
-            - name: OPENAI_API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: ai-mock-interview-secret
-                  key: openai-api-key
 ---
 apiVersion: apps/v1
 kind: Deployment

@@ -31,8 +31,6 @@ server:
       value: "postgres"
     - name: DB_PASSWORD
       value: "postgres"
-  openaiApiKey: ""
-
 database:
   name: "interview_db"
   username: "postgres"
