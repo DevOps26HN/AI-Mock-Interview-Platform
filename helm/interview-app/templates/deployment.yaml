@@ -1,0 +1,65 @@
+{{- include "interview-app.validateTUMID" . -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: interview-server
+  namespace: ai-mock-interview
+spec:
+  replicas: {{ .Values.server.replicaCount }}
+  selector:
+    matchLabels:
+      app: interview-server-selector
+  template:
+    metadata:
+      labels:
+        app: interview-server-selector
+    spec:
+      containers:
+        - name: server
+          image: "{{ .Values.server.image.repository }}:{{ .Values.server.image.tag }}"
+          imagePullPolicy: {{ .Values.server.image.pullPolicy }}
+          resources:
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
+          ports:
+            - containerPort: {{ .Values.server.service.targetPort }}
+          env:
+            {{- range .Values.server.env }}
+            - name: {{ .name }}
+              value: "{{ .value }}"
+            {{- end }}
+            - name: SERVER_PORT
+              value: "8080"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: interview-client
+  namespace: ai-mock-interview
+spec:
+  replicas: {{ .Values.client.replicaCount }}
+  selector:
+    matchLabels:
+      app: interview-client-selector
+  template:
+    metadata:
+      labels:
+        app: interview-client-selector
+    spec:
+      containers:
+        - name: client
+          image: "{{ .Values.client.image.repository }}:{{ .Values.client.image.tag }}"
+          imagePullPolicy: {{ .Values.client.image.pullPolicy }}
+          resources:
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+            requests:
+              cpu: "50m"
+              memory: "50Mi"
+          ports:
+            - containerPort: {{ .Values.client.service.targetPort }}

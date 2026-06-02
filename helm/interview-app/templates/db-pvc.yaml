@@ -1,0 +1,12 @@
+{{- include "interview-app.validateTUMID" . -}}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: db-pvc
+  namespace: ai-mock-interview
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.database.storageSize | default "1Gi" }}

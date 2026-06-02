@@ -1,0 +1,38 @@
+{{- include "interview-app.validateTUMID" . -}}
+{{- if .Values.ingress.enabled -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: "interview-ingress"
+  namespace: "ai-mock-interview"
+  {{- $annotations := .Values.ingress.annotations | default dict }}
+  {{- if $annotations }}
+  annotations:
+    {{- toYaml $annotations | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.ingress.tls }}
+  tls:
+    - hosts:
+        - "ai-mock-interview-ss26.stud.k8s.aet.cit.tum.de"
+      secretName: "ai-mock-interview-tls"
+  {{- end }}
+  rules:
+    - host: "ai-mock-interview-ss26.stud.k8s.aet.cit.tum.de"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: client-service
+                port:
+                  number: {{ .Values.client.service.port }}
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: server-service
+                port:
+                  number: {{ .Values.server.service.port }}
+{{- end }}
