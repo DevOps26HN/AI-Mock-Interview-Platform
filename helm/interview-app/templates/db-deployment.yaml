@@ -3,9 +3,9 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: interview-db
-  namespace: ai-mock-interview
+  namespace: {{ include "interview-app.namespace" . }}
 spec:
-  replicas: 1
+  replicas: {{ .Values.database.replicaCount }}
   selector:
     matchLabels:
       app: interview-db-selector
@@ -16,26 +16,29 @@ spec:
     spec:
       containers:
         - name: postgres
-          image: postgres:16
-          imagePullPolicy: IfNotPresent
+          image: "{{ .Values.database.image.repository }}:{{ .Values.database.image.tag }}"
+          imagePullPolicy: {{ .Values.database.image.pullPolicy }}
           env:
             - name: POSTGRES_DB
               value: {{ .Values.database.name | quote }}
             - name: POSTGRES_USER
-              value: {{ .Values.database.username | quote }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.database.existingSecret }}
+                  key: username
             - name: POSTGRES_PASSWORD
-              value: {{ .Values.database.password | quote }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.database.existingSecret }}
+                  key: password
             - name: PGDATA
               value: /var/lib/postgresql/data/pgdata
           ports:
-            - containerPort: 5432
+            - containerPort: {{ .Values.database.service.targetPort }}
+          {{- with .Values.database.resources }}
           resources:
-            limits:
-              cpu: "500m"
-              memory: "512Mi"
-            requests:
-              cpu: "200m"
-              memory: "256Mi"
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           volumeMounts:
             - name: db-data
               mountPath: /var/lib/postgresql/data
