@@ -15,8 +15,8 @@ realistic interview conditions and identify skill gaps before the real thing.
 > The Public IP is provisioned using **Static Standard SKU** to ensure persistency during the grading window. 
 > If the infrastructure is completely destroyed and recreated via Terraform, the operator must update these links with the new CLI outputs.
 
-* **Frontend Access**: [http://4.223.69.23:3000](http://4.223.69.23:3000)
-* **SSH Management**: `ssh azureuser@4.223.69.23`
+* **Frontend Access**: [https://ai-mock-interview-ss26.stud.k8s.aet.cit.tum.de](https://ai-mock-interview-ss26.stud.k8s.aet.cit.tum.de)
+* The application is deployed on the AET Kubernetes Cluster using Helm. 
 
 ---
 
@@ -26,6 +26,7 @@ realistic interview conditions and identify skill gaps before the real thing.
 | -------------------- | ------------------------------------------------------------------------- |
 | `client/`            | React + Vite frontend application                                         |
 | `server/`            | Spring Boot REST API (interview question service)                         |
+| `helm/`              | Helm chart for Kubernetes deployment on the AET Cluster                   |
 | `terraform/`         | Production-grade Terraform configurations for provisioning Azure VM       |
 | `ansible/`           | Ansible playbooks for VM configuration and application deployment         |
 | `infra/`             | Infrastructure configuration                                              |
@@ -125,6 +126,87 @@ Run the idempotent Ansible playbook to completely configure the VM and start the
 ```bash
 ansible-playbook -i inventory.ini playbook.yml
 ```
+
+---
+
+## Kubernetes Deployment (Helm)
+
+The AI Mock Interview Platform is deployed on the AET Kubernetes Cluster using Helm.
+
+The Helm chart packages the complete application stack, including:
+
+- React frontend
+- Spring Boot backend
+- PostgreSQL database
+- Kubernetes Services
+- ConfigMaps
+- Ingress routing
+
+All deployment-specific configuration is externalized through Helm values to ensure reproducible and consistent deployments across environments.
+
+### Prerequisites
+
+Before deploying, ensure that:
+
+- Helm is installed
+- kubectl is installed
+- You have access to the AET Kubernetes Cluster
+- A valid kubeconfig file is available locally
+
+### Validate the Chart
+
+Verify the Helm chart structure and syntax:
+
+```bash
+helm lint ./helm/interview-app --set tumid="<YOUR_TUM_ID>"
+```
+
+Render the Kubernetes manifests locally before deployment:
+
+```bash
+helm template interview-app ./helm/interview-app \
+  --set tumid="<YOUR_TUM_ID>"
+```
+
+### Deploy the Application
+
+Configure cluster access:
+
+```bash
+export KUBECONFIG=/path/to/kubeconfig.yaml
+```
+
+Install or upgrade the release:
+
+```bash
+helm upgrade --install interview-app ./helm/interview-app \
+  --namespace ai-mock-interview \
+  --set tumid="<YOUR_TUM_ID>"
+```
+
+### Public Access
+
+The deployed application is available at:
+
+```text
+https://ai-mock-interview-ss26.stud.k8s.aet.cit.tum.de
+```
+
+### Remove the Deployment
+
+The release can be removed with:
+
+```bash
+helm uninstall interview-app \
+  --namespace ai-mock-interview
+```
+
+### Security Notes
+
+- Kubernetes credentials are not stored in the repository.
+- Application secrets are managed through Kubernetes Secrets.
+- Registry credentials remain external to source control.
+- No cluster access tokens or kubeconfig files are committed to Git.
 
 ---
 
