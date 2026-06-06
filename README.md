@@ -13,10 +13,9 @@ realistic interview conditions and identify skill gaps before the real thing.
 
 > [!NOTE]
 > The Public IP is provisioned using **Static Standard SKU** to ensure persistency during the grading window. 
-> If the infrastructure is completely destroyed and recreated via Terraform, the operator must update these links with the new CLI outputs.
 
-* **Frontend Access**: [http://4.223.69.23:3000](http://4.223.69.23:3000)
-* **SSH Management**: `ssh azureuser@4.223.69.23`
+* **Frontend Access**: [https://ai-mock-interview-ss26.stud.k8s.aet.cit.tum.de](https://ai-mock-interview-ss26.stud.k8s.aet.cit.tum.de)
+* The application is deployed on the AET Kubernetes Cluster using Helm. 
 
 ---
 
@@ -26,6 +25,7 @@ realistic interview conditions and identify skill gaps before the real thing.
 | -------------------- | ------------------------------------------------------------------------- |
 | `client/`            | React + Vite frontend application                                         |
 | `server/`            | Spring Boot REST API (interview question service)                         |
+| `helm/`              | Helm chart for Kubernetes deployment on the AET Cluster                   |
 | `terraform/`         | Production-grade Terraform configurations for provisioning Azure VM       |
 | `ansible/`           | Ansible playbooks for VM configuration and application deployment         |
 | `infra/`             | Infrastructure configuration                                              |
@@ -125,6 +125,123 @@ Run the idempotent Ansible playbook to completely configure the VM and start the
 ```bash
 ansible-playbook -i inventory.ini playbook.yml
 ```
+
+---
+
+## Kubernetes Deployment (Helm)
+
+The AI Mock Interview Platform is deployed on the AET Kubernetes Cluster using Helm.
+
+The Helm chart packages the complete application stack, including:
+
+- React frontend
+- Spring Boot backend
+- PostgreSQL database
+- Kubernetes Services
+- ConfigMaps
+- Ingress routing
+
+All deployment-specific configuration is externalized through Helm values to ensure reproducible and consistent deployments across environments.
+
+### Prerequisites
+
+Before deploying, ensure that:
+
+- Helm is installed
+- kubectl is installed
+- You have access to the AET Kubernetes Cluster
+- A valid kubeconfig file is available locally
+
+### Deploy the Application
+
+Step 1: Configure cluster access:
+
+```bash
+export KUBECONFIG=/path/to/kubeconfig.yaml
+```
+
+Step 2: Create the namespace:
+
+```bash
+kubectl create namespace <YOUR_TUM_ID>-devops26
+```
+
+Step 3: Create the database secret:
+
+```bash
+kubectl create secret generic interview-db-secrets \
+  --from-literal=username=postgres \
+  --from-literal=password=<YOUR_PASSWORD> \
+  --namespace <YOUR_TUM_ID>-devops26
+```
+
+Step 4: Create the GitHub Container Registry secret:
+
+```bash
+kubectl create secret docker-registry ghcr-secret \
+  --docker-server=ghcr.io \
+  --docker-username=<YOUR_GITHUB_USERNAME> \
+  --docker-password=<YOUR_GITHUB_PAT> \
+  --namespace <YOUR_TUM_ID>-devops26
+```
+
+Step 5: Install or upgrade the release:
+
+```bash
+helm upgrade --install interview-app ./helm/interview-app \
+  --namespace <YOUR_TUM_ID>-devops26 \
+  --set tumid="<YOUR_TUM_ID>"
+```
+
+### Validation (Optional)
+
+Verify the Helm chart structure and syntax:
+
+```bash
+helm lint ./helm/interview-app --set tumid="<YOUR_TUM_ID>"
+```
+
+Render the Kubernetes manifests locally before deployment:
+
+```bash
+helm template interview-app ./helm/interview-app \
+  --set tumid="<YOUR_TUM_ID>"
+```
+
+### Public Access
+
+The application hostname is generated automatically from the operator's TUM ID. 
+
+After deployment, the application will be available at:
+
+```text
+https://ai-mock-interview-<YOUR_TUM_ID>.stud.k8s.aet.cit.tum.de
+```
+
+Example:
+
+```text
+TUM ID: ab12cde
+URL: https://ai-mock-interview-ab12cde.stud.k8s.aet.cit.tum.de
+```
+
+Each deployment receives its own hostname and does not share the URL of other deployments.
+
+### Remove the Deployment
+
+The release can be removed with:
+
+```bash
+helm uninstall interview-app \
+  --namespace <YOUR_TUM_ID>-devops26
+```
+
+### Security Notes
+
+- Kubernetes credentials are not stored in the repository.
+- Application secrets are managed through Kubernetes Secrets.
+- Registry credentials remain external to source control.
+- No cluster access tokens or kubeconfig files are committed to Git.
 
 ---
 
