@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: db-pvc
+  name: {{ include "interview-app.fullname" . }}-db-pvc
   namespace: {{ include "interview-app.namespace" . }}
 spec:
   accessModes:

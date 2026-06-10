@@ -1,6 +1,21 @@
 {{/* vim: set filetype=mustache: */}}
 
 {{/*
+Determine the image repository.
+*/}}
+{{- define "interview-app.imageRepository" -}}
+{{- $context := index . 0 -}}
+{{- $component := index . 1 -}}
+{{- $registry := $context.Values.image.registry | default "ghcr.io" -}}
+{{- $username := $context.Values.githubUsername | default $context.Values.image.githubUsername -}}
+{{- $project := $context.Values.image.project | default "ai-mock-interview-platform" -}}
+{{- if not $username -}}
+{{-   fail "ERROR: githubUsername must be provided either in values.yaml or via --set githubUsername=<name>" -}}
+{{- end -}}
+{{- printf "%s/%s/%s/%s" $registry $username $project $component -}}
+{{- end -}}
+
+{{/*
 Helper to validate that the TUM ID is set.
 */}}
 {{- define "interview-app.validateTUMID" -}}

@@ -22,13 +22,13 @@ function App() {
 
         const response = await fetch(`${actualApiUrl}/api/interview/questions`);
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          throw new Error(`HTTP error! status: ${response.status} at ${actualApiUrl}/api/interview/questions`);
         }
         const data = await response.json();
         setQuestions(data);
       } catch (e) {
         console.error("Could not fetch questions:", e);
-        setError("Failed to load interview questions. Please ensure the backend server is running.");
+        setError(`Failed to load interview questions: ${e.message}. (Attempted URL: ${actualApiUrl || window.location.origin}/api/interview/questions)`);
       } finally {
         setLoading(false);
       }
@@ -50,12 +50,23 @@ function App() {
       const response = await fetch(`${actualApiUrl}/api/interview/questions/${id}/hint`, {
         method: 'POST'
       });
-      if (!response.ok) throw new Error("Failed to fetch hint");
+      
+      if (!response.ok) {
+        let errorMsg = `Error ${response.status}`;
+        try {
+          const errorData = await response.json();
+          errorMsg += `: ${errorData.message || response.statusText}`;
+        } catch (e) {
+          errorMsg += `: ${response.statusText}`;
+        }
+        throw new Error(errorMsg);
+      }
+      
       const data = await response.json();
       setHints(prev => ({ ...prev, [id]: data.hint }));
     } catch (e) {
       console.error("Hint error:", e);
-      setHints(prev => ({ ...prev, [id]: "Could not generate hint at this time." }));
+      setHints(prev => ({ ...prev, [id]: `!!! ${e.message}` }));
     } finally {
       setLoadingHints(prev => ({ ...prev, [id]: false }));
     }

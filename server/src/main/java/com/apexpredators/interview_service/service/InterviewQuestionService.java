@@ -60,6 +60,9 @@ public class InterviewQuestionService {
             }
             logger.error("Invalid response format from GenAI service for ID: {}", id);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Invalid response from GenAI service");
+        } catch (org.springframework.web.client.HttpStatusCodeException e) {
+            logger.error("GenAI service returned error status {}: {}", e.getStatusCode(), e.getResponseBodyAsString());
+            throw new ResponseStatusException(e.getStatusCode(), "GenAI error: " + e.getResponseBodyAsString(), e);
         } catch (Exception e) {
             logger.error("Failed to generate hint for question ID: {}. Error: {}", id, e.getMessage());
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error generating hint: " + e.getMessage(), e);

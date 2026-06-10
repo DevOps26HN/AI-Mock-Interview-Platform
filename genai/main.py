@@ -4,9 +4,14 @@ import os
 import requests
 import json
 import logging
+import traceback
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+# Configure logging to be more descriptive
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger("genai-service")
 
 app = FastAPI()
 
@@ -20,14 +25,14 @@ class HintResponse(BaseModel):
 
 GENAI_BACKEND = os.getenv("GENAI_BACKEND", "local")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
 LOCAL_MODEL_URL = os.getenv("LOCAL_MODEL_URL", "http://localhost:11434/api/generate")
 
 def get_gemini_hint(question, role, category):
-    # Using gemini-2.5-flash which was verified to work with the provided key
-    model = "gemini-2.5-flash" 
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={GEMINI_API_KEY}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent"
     headers = {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-goog-api-key': GEMINI_API_KEY
     }
     prompt = f"Provide a concise interview hint for the following question for a {role} role in the {category} category: {question}"
     data = {
@@ -35,21 +40,36 @@ def get_gemini_hint(question, role, category):
             "parts": [{"text": prompt}]
         }]
     }
-    logger.info(f"Calling Gemini API for model {model}")
+    
+    logger.info(f">>> Requesting hint from Gemini ({GEMINI_MODEL})")
     try:
         response = requests.post(url, headers=headers, json=data, timeout=15)
-        if response.status_code != 200:
-            logger.error(f"Gemini API returned {response.status_code}: {response.text}")
-            raise Exception(f"Gemini API error: {response.status_code}")
         
-        result = response.json()
-        return result['candidates'][0]['content']['parts'][0]['text']
+        if response.status_code == 200:
+            result = response.json()
+            try:
+                text = result['candidates'][0]['content']['parts'][0]['text']
+                logger.info("<<< Gemini hint generated successfully.")
+                return text
+            except (KeyError, IndexError) as e:
+                logger.error(f"!!! Unexpected Gemini response structure: {json.dumps(result)}")
+                raise HTTPException(status_code=500, detail="Unexpected Gemini response structure")
+        else:
+            logger.error(f"!!! Gemini API Error {response.status_code}: {response.text}")
+            raise HTTPException(status_code=response.status_code, detail=f"Gemini API Error: {response.text}")
+            
+    except requests.exceptions.Timeout:
+        logger.error("!!! Gemini API request timed out after 15s")
+        raise HTTPException(status_code=504, detail="Gemini API request timed out")
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Error in get_gemini_hint: {str(e)}")
-        raise e
+        logger.error(f"!!! Exception in get_gemini_hint: {str(e)}")
+        logger.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=str(e))
 
 def get_local_hint(question, role, category):
-    logger.info(f"Attempting local inference via Ollama at {LOCAL_MODEL_URL}")
+    logger.info(f">>> Attempting local inference via Ollama at {LOCAL_MODEL_URL}")
     prompt = f"Provide a concise interview hint for the following question for a {role} role in the {category} category: {question}"
     
     payload = {
@@ -61,34 +81,67 @@ def get_local_hint(question, role, category):
     try:
         response = requests.post(LOCAL_MODEL_URL, json=payload, timeout=10)
         if response.status_code == 200:
+            logger.info("<<< Local hint generated successfully.")
             return response.json().get("response", "No response from local model")
+        else:
+            logger.warning(f"!!! Local Ollama returned status {response.status_code}")
+            return None
     except Exception as e:
-        logger.warning(f"Local Ollama service not reachable: {str(e)}")
-    
-    return f"[Fallback Hint]: For a {role} answering '{question}', focus on your practical experience in {category}."
+        logger.warning(f"!!! Local Ollama service not reachable: {str(e)}")
+        return None
 
 @app.post("/generate-hint", response_model=HintResponse)
 async def generate_hint(request: HintRequest):
-    logger.info(f"Received hint request for: {request.question}")
+    logger.info(f"=== New Hint Request: {request.question[:50]}... ===")
     
-    hint = None
     if GENAI_BACKEND == "gemini":
         if not GEMINI_API_KEY:
-            logger.warning("GEMINI_API_KEY not configured. Falling back.")
-        else:
-            try:
-                hint = get_gemini_hint(request.question, request.role, request.category)
-            except Exception as e:
-                logger.error(f"Gemini API failed: {str(e)}. Falling back.")
+            logger.error("!!! GENAI_BACKEND is 'gemini' but GEMINI_API_KEY is missing!")
+            raise HTTPException(status_code=500, detail="GEMINI_API_KEY is missing")
+        
+        try:
+            hint = get_gemini_hint(request.question, request.role, request.category)
+            return HintResponse(hint=hint)
+        except HTTPException as he:
+            logger.info(f"--- Gemini failed ({he.status_code}), checking local.")
+            # Try local model as fallback
+            hint = get_local_hint(request.question, request.role, request.category)
+            if hint:
+                return HintResponse(hint=hint)
+            
+            # If everything fails, return a simulated hint to maintain UX
+            logger.warning("!!! All AI backends failed. Returning simulated hint.")
+            simulated_hint = (
+                f"For this {request.category} question ({request.role}), "
+                f"focus on demonstrating your understanding of '{request.question[:40]}...'. "
+                "Try to provide a concrete example from your experience."
+            )
+            return HintResponse(hint=simulated_hint)
     
+    # Direct local path
+    hint = get_local_hint(request.question, request.role, request.category)
     if not hint:
-        hint = get_local_hint(request.question, request.role, request.category)
+        logger.error("!!! All inference methods failed.")
+        raise HTTPException(status_code=503, detail="AI Hint service currently unavailable")
+    
+    return HintResponse(hint=hint)
+    
+    # Direct local path
+    hint = get_local_hint(request.question, request.role, request.category)
+    if not hint:
+        logger.error("!!! All inference methods failed.")
+        raise HTTPException(status_code=503, detail="AI Hint service currently unavailable")
     
     return HintResponse(hint=hint)
 
 @app.get("/health")
 async def health():
-    return {"status": "ok", "backend": GENAI_BACKEND}
+    return {
+        "status": "ok", 
+        "backend": GENAI_BACKEND, 
+        "model": GEMINI_MODEL,
+        "has_key": bool(GEMINI_API_KEY)
+    }
 
 if __name__ == "__main__":
     import uvicorn

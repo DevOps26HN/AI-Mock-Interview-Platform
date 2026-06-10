@@ -23,8 +23,8 @@ spec:
       {{- end }}
       containers:
         - name: genai
-          image: "{{ .Values.genai.image.repository }}:{{ .Values.genai.image.tag }}"
-          imagePullPolicy: {{ .Values.genai.image.pullPolicy }}
+          image: "{{ include "interview-app.imageRepository" (list . "genai") }}:{{ .Values.genai.image.tag | default .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.genai.image.pullPolicy | default .Values.image.pullPolicy }}
           ports:
             - name: http
               containerPort: {{ .Values.genai.service.targetPort }}
@@ -32,6 +32,8 @@ spec:
           env:
             - name: GENAI_BACKEND
               value: {{ .Values.genai.backend | quote }}
+            - name: GEMINI_MODEL
+              value: {{ .Values.genai.model | default "gemini-1.5-flash" | quote }}
             - name: LOCAL_MODEL_URL
               value: {{ .Values.genai.localModelUrl | quote }}
             - name: GEMINI_API_KEY
