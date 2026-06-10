@@ -32,6 +32,8 @@ spec:
           env:
             - name: GENAI_BACKEND
               value: {{ .Values.genai.backend | quote }}
+            - name: LOCAL_MODEL_URL
+              value: {{ .Values.genai.localModelUrl | quote }}
             - name: GEMINI_API_KEY
               valueFrom:
                 secretKeyRef:

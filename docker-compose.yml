@@ -21,6 +21,7 @@ services:
     environment:
       GEMINI_API_KEY: ${GEMINI_API_KEY}
       GENAI_BACKEND: ${GENAI_BACKEND:-local}
+      LOCAL_MODEL_URL: ${LOCAL_MODEL_URL:-http://localhost:11434/api/generate}
     networks:
       - app-network
 

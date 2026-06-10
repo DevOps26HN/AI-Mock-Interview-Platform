@@ -97,6 +97,7 @@ genai:
       cpu: "200m"
       memory: "256Mi"
   backend: "gemini"
+  localModelUrl: "http://localhost:11434/api/generate"
   existingSecret: "genai-secrets"
   serviceUrl: "http://genai:8000"
 
