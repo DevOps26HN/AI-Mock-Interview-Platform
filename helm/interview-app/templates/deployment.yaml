@@ -46,7 +46,7 @@ spec:
                   name: {{ .Values.database.existingSecret }}
                   key: password
             - name: GENAI_SERVICE_URL
-              value: "http://genai:8000"
+              value: {{ .Values.genai.serviceUrl | quote }}
 ---
 apiVersion: apps/v1
 kind: Deployment

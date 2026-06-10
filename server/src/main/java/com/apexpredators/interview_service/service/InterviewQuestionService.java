@@ -5,6 +5,8 @@ import com.apexpredators.interview_service.repository.InterviewQuestionRepositor
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.HashMap;
 import java.util.List;
@@ -20,9 +22,9 @@ public class InterviewQuestionService {
     @Value("${genai.url:http://localhost:8000}")
     private String genAiUrl;
 
-    public InterviewQuestionService(InterviewQuestionRepository interviewQuestionRepository) {
+    public InterviewQuestionService(InterviewQuestionRepository interviewQuestionRepository, RestTemplate restTemplate) {
         this.interviewQuestionRepository = interviewQuestionRepository;
-        this.restTemplate = new RestTemplate();
+        this.restTemplate = restTemplate;
     }
 
     public List<InterviewQuestion> getInterviewQuestions() {
@@ -32,7 +34,7 @@ public class InterviewQuestionService {
     public String getQuestionHint(Long id) {
         Optional<InterviewQuestion> questionOpt = interviewQuestionRepository.findById(id);
         if (questionOpt.isEmpty()) {
-            throw new RuntimeException("Question not found");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Question not found");
         }
         InterviewQuestion q = questionOpt.get();
 
@@ -43,9 +45,12 @@ public class InterviewQuestionService {
 
         try {
             Map<String, Object> response = restTemplate.postForObject(genAiUrl + "/generate-hint", request, Map.class);
-            return (String) response.get("hint");
+            if (response != null && response.containsKey("hint")) {
+                return (String) response.get("hint");
+            }
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Invalid response from GenAI service");
         } catch (Exception e) {
-            return "Error generating hint: " + e.getMessage();
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error generating hint: " + e.getMessage(), e);
         }
     }
 }

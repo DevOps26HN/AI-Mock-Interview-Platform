@@ -98,6 +98,7 @@ genai:
       memory: "256Mi"
   backend: "gemini"
   existingSecret: "genai-secrets"
+  serviceUrl: "http://genai:8000"
 
 # Ingress configuration
 ingress:

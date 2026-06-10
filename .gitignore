@@ -27,3 +27,11 @@ build/
 # Ansible-specific ignores for local config and secrets
 ansible/inventory.ini
 ansible/vars.yml
+
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.venv/
+venv/

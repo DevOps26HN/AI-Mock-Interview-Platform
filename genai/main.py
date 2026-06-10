@@ -20,9 +20,9 @@ class HintResponse(BaseModel):
 
 GENAI_BACKEND = os.getenv("GENAI_BACKEND", "local")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+LOCAL_MODEL_URL = os.getenv("LOCAL_MODEL_URL", "http://localhost:11434/api/generate") # Default Ollama URL
 
 def get_gemini_hint(question, role, category):
-    # Using the exact model from your working curl example
     model = "gemini-flash-latest" 
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
     headers = {
@@ -37,7 +37,7 @@ def get_gemini_hint(question, role, category):
     }
     logger.info(f"Calling Gemini API for model {model}")
     try:
-        response = requests.post(url, headers=headers, json=data)
+        response = requests.post(url, headers=headers, json=data, timeout=10)
         if response.status_code != 200:
             logger.error(f"Gemini API returned {response.status_code}: {response.text}")
             raise HTTPException(status_code=500, detail=f"Gemini API error: {response.text}")
@@ -51,7 +51,28 @@ def get_gemini_hint(question, role, category):
         raise HTTPException(status_code=500, detail=str(e))
 
 def get_local_hint(question, role, category):
-    return f"Local Hint: Focus on demonstrating your experience with {category} as a {role} when answering '{question}'."
+    # Implementing a real local inference call via Ollama (industry standard for local LLMs)
+    logger.info(f"Attempting local inference via Ollama at {LOCAL_MODEL_URL}")
+    prompt = f"Provide a concise interview hint for the following question for a {role} role in the {category} category: {question}"
+    
+    payload = {
+        "model": "llama3",
+        "prompt": prompt,
+        "stream": False
+    }
+    
+    try:
+        response = requests.post(LOCAL_MODEL_URL, json=payload, timeout=30)
+        if response.status_code == 200:
+            return response.json().get("response", "No response from local model")
+        else:
+            logger.warning(f"Local Ollama service returned {response.status_code}. Falling back to simulated local inference.")
+    except Exception as e:
+        logger.warning(f"Local Ollama service not reachable: {str(e)}. Falling back to simulated local inference.")
+    
+    # Fallback to simulated local inference if Ollama is not available
+    # In a real production setup, the user would have Ollama running.
+    return f"[Simulated Local LLM Output]: For a {role} answering '{question}', highlight your practical skills in {category}."
 
 @app.post("/generate-hint", response_model=HintResponse)
 async def generate_hint(request: HintRequest):
