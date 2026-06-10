@@ -36,7 +36,7 @@ services:
       DB_NAME: ${DB_NAME:-interview_db}
       DB_USERNAME: ${DB_USERNAME:-postgres}
       DB_PASSWORD: ${DB_PASSWORD:-postgres}
-      GENAI_SERVICE_URL: http://genai:8000
+      GENAI_SERVICE_URL: ${GENAI_SERVICE_URL:-http://genai:8000}
     ports:
       - "8080:8080"
     depends_on:
