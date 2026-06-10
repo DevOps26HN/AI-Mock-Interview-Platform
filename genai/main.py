@@ -34,7 +34,12 @@ def get_gemini_hint(question, role, category):
         'Content-Type': 'application/json',
         'X-goog-api-key': GEMINI_API_KEY
     }
-    prompt = f"Provide a concise interview hint for the following question for a {role} role in the {category} category: {question}"
+    # Explicitly requesting plain text without markdown
+    prompt = (
+        f"Provide a concise interview hint for the following question for a {role} role in the {category} category: {question}. "
+        "Return ONLY the hint text. Do NOT use markdown, bolding (**), or bullet points. "
+        "Keep it professional and structured as a clear paragraph."
+    )
     data = {
         "contents": [{
             "parts": [{"text": prompt}]
