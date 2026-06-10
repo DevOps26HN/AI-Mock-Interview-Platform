@@ -43,11 +43,3 @@ spec:
                   key: GEMINI_API_KEY
           resources:
             {{- toYaml .Values.genai.resources | nindent 12 }}
-          volumeMounts:
-            - name: genai-code-volume
-              mountPath: /app/main.py
-              subPath: main.py
-      volumes:
-        - name: genai-code-volume
-          configMap:
-            name: genai-code

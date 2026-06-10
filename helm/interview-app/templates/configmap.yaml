@@ -22,13 +22,4 @@ data:
             proxy_set_header X-Real-IP $remote_addr;
         }
     }
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: genai-code
-  namespace: {{ include "interview-app.namespace" . }}
-data:
-  main.py: |
-{{ .Values.genaiCode | indent 4 }}
 
