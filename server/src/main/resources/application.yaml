@@ -13,3 +13,6 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+
+genai:
+  url: ${GENAI_SERVICE_URL:http://genai:8000}

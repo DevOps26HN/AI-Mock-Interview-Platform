@@ -184,3 +184,55 @@ body {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+.hint-container {
+  background: rgba(139, 92, 246, 0.1);
+  border-left: 3px solid var(--accent-purple);
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  border-radius: 4px;
+  animation: fadeIn 0.5s ease-out;
+}
+
+.hint-text {
+  font-size: 0.95rem;
+  color: var(--text-main);
+  margin-top: 0.5rem;
+  line-height: 1.5;
+}
+
+.hint-btn {
+  background: linear-gradient(to right, var(--accent-blue), var(--accent-purple));
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.hint-btn:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: scale(1.05);
+}
+
+.hint-btn:disabled {
+  background: var(--text-muted);
+  cursor: not-allowed;
+}
+
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid var(--card-border);
+  padding-top: 1rem;
+  margin-top: auto;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

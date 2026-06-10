@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "interview-app.fullname" . }}-genai
+  labels:
+    {{- include "interview-app.labels" . | nindent 4 }}
+    app.kubernetes.io/component: genai
+spec:
+  replicas: {{ .Values.genai.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "interview-app.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: genai
+  template:
+    metadata:
+      labels:
+        {{- include "interview-app.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: genai
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: genai
+          image: "{{ .Values.genai.image.repository }}:{{ .Values.genai.image.tag }}"
+          imagePullPolicy: {{ .Values.genai.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.genai.service.targetPort }}
+              protocol: TCP
+          env:
+            - name: GENAI_BACKEND
+              value: {{ .Values.genai.backend | quote }}
+            - name: GEMINI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.genai.existingSecret }}
+                  key: GEMINI_API_KEY
+          resources:
+            {{- toYaml .Values.genai.resources | nindent 12 }}

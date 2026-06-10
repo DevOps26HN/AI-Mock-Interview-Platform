@@ -78,6 +78,27 @@ client:
       cpu: "50m"
       memory: "50Mi"
 
+# GenAI configuration
+genai:
+  image:
+    repository: ghcr.io/devops26hn/ai-mock-interview-platform/genai
+    tag: latest
+    pullPolicy: Always
+  service:
+    type: ClusterIP
+    port: 8000
+    targetPort: 8000
+  replicaCount: 1
+  resources:
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+    requests:
+      cpu: "200m"
+      memory: "256Mi"
+  backend: "gemini"
+  existingSecret: "genai-secrets"
+
 # Ingress configuration
 ingress:
   enabled: true
