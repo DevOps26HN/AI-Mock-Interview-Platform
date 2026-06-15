@@ -6,6 +6,8 @@ metadata:
   namespace: {{ include "interview-app.namespace" . }}
 spec:
   replicas: {{ .Values.database.replicaCount }}
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: interview-db-selector
@@ -45,4 +47,4 @@ spec:
       volumes:
         - name: db-data
           persistentVolumeClaim:
-            claimName: db-pvc
+            claimName: {{ include "interview-app.fullname" . }}-db-pvc

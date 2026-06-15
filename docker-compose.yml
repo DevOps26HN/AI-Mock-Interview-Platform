@@ -13,6 +13,18 @@ services:
     networks:
       - app-network
 
+  genai:
+    build:
+      context: ./genai
+      dockerfile: Dockerfile
+    container_name: interview-genai
+    environment:
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      GENAI_BACKEND: ${GENAI_BACKEND:-local}
+      LOCAL_MODEL_URL: ${LOCAL_MODEL_URL:-http://localhost:11434/api/generate}
+    networks:
+      - app-network
+
   server:
     build:
       context: ./server
@@ -24,10 +36,12 @@ services:
       DB_NAME: ${DB_NAME:-interview_db}
       DB_USERNAME: ${DB_USERNAME:-postgres}
       DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      GENAI_SERVICE_URL: ${GENAI_SERVICE_URL:-http://genai:8000}
     ports:
       - "8080:8080"
     depends_on:
       - db
+      - genai
     networks:
       - app-network
 

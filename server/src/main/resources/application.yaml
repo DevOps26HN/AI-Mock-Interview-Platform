@@ -13,3 +13,11 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+
+server:
+  error:
+    include-message: always
+    include-binding-errors: always
+
+genai:
+  url: ${GENAI_SERVICE_URL:http://genai:8000}

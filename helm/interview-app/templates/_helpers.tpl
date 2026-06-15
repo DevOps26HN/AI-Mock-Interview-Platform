@@ -1,6 +1,21 @@
 {{/* vim: set filetype=mustache: */}}
 
 {{/*
+Determine the image repository.
+*/}}
+{{- define "interview-app.imageRepository" -}}
+{{- $context := index . 0 -}}
+{{- $component := index . 1 -}}
+{{- $registry := $context.Values.image.registry | default "ghcr.io" -}}
+{{- $username := $context.Values.githubUsername | default $context.Values.image.githubUsername -}}
+{{- $project := $context.Values.image.project | default "ai-mock-interview-platform" -}}
+{{- if not $username -}}
+{{-   fail "ERROR: githubUsername must be provided either in values.yaml or via --set githubUsername=<name>" -}}
+{{- end -}}
+{{- printf "%s/%s/%s/%s" $registry $username $project $component -}}
+{{- end -}}
+
+{{/*
 Helper to validate that the TUM ID is set.
 */}}
 {{- define "interview-app.validateTUMID" -}}
@@ -55,4 +70,31 @@ We truncate at 63 chars because some Kubernetes name fields are limited to this 
 {{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 {{- end -}}
+{{- end -}}
+
+{{/*
+Create chart name and version as used by the chart label.
+*/}}
+{{- define "interview-app.chart" -}}
+{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{/*
+Common labels
+*/}}
+{{- define "interview-app.labels" -}}
+helm.sh/chart: {{ include "interview-app.chart" . }}
+{{ include "interview-app.selectorLabels" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end -}}
+
+{{/*
+Selector labels
+*/}}
+{{- define "interview-app.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "interview-app.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end -}}

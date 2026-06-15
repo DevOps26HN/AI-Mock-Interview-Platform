@@ -1,10 +1,21 @@
 # This file contains the default values for the AI Mock Interview App Helm chart.
 
-# Add your tumid here
+# Add your tumid here (Required: set via --set tumid=<id>)
 tumid: ""
 
-# Target namespace (e.g. <tum-id>-devops26)
+# Target namespace (Required: set via --set namespace=<name>)
 namespace: ""
+
+# Global image configuration to avoid hardcoding
+# githubUsername (Required: set via --set githubUsername=<name>)
+githubUsername: "" 
+
+image:
+  registry: ghcr.io
+  githubUsername: ""
+  project: ai-mock-interview-platform
+  tag: latest
+  pullPolicy: Always
 
 # Image Pull Secrets for GHCR
 imagePullSecrets:
@@ -13,9 +24,8 @@ imagePullSecrets:
 # Server configuration
 server:
   image:
-    repository: ghcr.io/devops26hn/ai-mock-interview-platform/server
-    tag: latest
-    pullPolicy: Always
+    tag: "" # Overrides global tag if set
+    pullPolicy: "" # Overrides global pullPolicy if set
   service:
     type: ClusterIP
     port: 8080
@@ -62,9 +72,8 @@ database:
 # Client configuration
 client:
   image:
-    repository: ghcr.io/devops26hn/ai-mock-interview-platform/client
-    tag: latest
-    pullPolicy: Always
+    tag: "" # Overrides global tag if set
+    pullPolicy: "" # Overrides global pullPolicy if set
   service:
     type: ClusterIP
     port: 80
@@ -77,6 +86,29 @@ client:
     requests:
       cpu: "50m"
       memory: "50Mi"
+
+# GenAI configuration
+genai:
+  image:
+    tag: "" # Overrides global tag if set
+    pullPolicy: "" # Overrides global pullPolicy if set
+  service:
+    type: ClusterIP
+    port: 8000
+    targetPort: 8000
+  replicaCount: 1
+  resources:
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+    requests:
+      cpu: "200m"
+      memory: "256Mi"
+  backend: "gemini"
+  model: "gemini-flash-lite-latest"
+  localModelUrl: "http://localhost:11434/api/generate"
+  existingSecret: "genai-secrets"
+  serviceUrl: "http://genai:8000"
 
 # Ingress configuration
 ingress:

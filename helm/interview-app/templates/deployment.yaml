@@ -20,8 +20,8 @@ spec:
       {{- end }}
       containers:
         - name: server
-          image: "{{ .Values.server.image.repository }}:{{ .Values.server.image.tag }}"
-          imagePullPolicy: {{ .Values.server.image.pullPolicy }}
+          image: "{{ include "interview-app.imageRepository" (list . "server") }}:{{ .Values.server.image.tag | default .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.server.image.pullPolicy | default .Values.image.pullPolicy }}
           {{- with .Values.server.resources }}
           resources:
             {{- toYaml . | nindent 12 }}
@@ -45,6 +45,8 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.database.existingSecret }}
                   key: password
+            - name: GENAI_SERVICE_URL
+              value: {{ .Values.genai.serviceUrl | quote }}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -67,8 +69,8 @@ spec:
       {{- end }}
       containers:
         - name: client
-          image: "{{ .Values.client.image.repository }}:{{ .Values.client.image.tag }}"
-          imagePullPolicy: {{ .Values.client.image.pullPolicy }}
+          image: "{{ include "interview-app.imageRepository" (list . "client") }}:{{ .Values.client.image.tag | default .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.client.image.pullPolicy | default .Values.image.pullPolicy }}
           {{- with .Values.client.resources }}
           resources:
             {{- toYaml . | nindent 12 }}

@@ -5,6 +5,8 @@ function App() {
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [hints, setHints] = useState({});
+  const [loadingHints, setLoadingHints] = useState({});
 
   useEffect(() => {
     const fetchQuestions = async () => {
@@ -20,13 +22,13 @@ function App() {
 
         const response = await fetch(`${actualApiUrl}/api/interview/questions`);
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          throw new Error(`HTTP error! status: ${response.status} at ${actualApiUrl}/api/interview/questions`);
         }
         const data = await response.json();
         setQuestions(data);
       } catch (e) {
         console.error("Could not fetch questions:", e);
-        setError("Failed to load interview questions. Please ensure the backend server is running.");
+        setError(`Failed to load interview questions: ${e.message}. (Attempted URL: ${actualApiUrl || window.location.origin}/api/interview/questions)`);
       } finally {
         setLoading(false);
       }
@@ -34,6 +36,41 @@ function App() {
 
     fetchQuestions();
   }, []);
+
+  const fetchHint = async (id) => {
+    setLoadingHints(prev => ({ ...prev, [id]: true }));
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL;
+      const actualApiUrl = (apiUrl && apiUrl !== 'http://localhost:8080')
+        ? apiUrl
+        : (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+          ? 'http://localhost:8080'
+          : '';
+
+      const response = await fetch(`${actualApiUrl}/api/interview/questions/${id}/hint`, {
+        method: 'POST'
+      });
+      
+      if (!response.ok) {
+        let errorMsg = `Error ${response.status}`;
+        try {
+          const errorData = await response.json();
+          errorMsg += `: ${errorData.message || response.statusText}`;
+        } catch (e) {
+          errorMsg += `: ${response.statusText}`;
+        }
+        throw new Error(errorMsg);
+      }
+      
+      const data = await response.json();
+      setHints(prev => ({ ...prev, [id]: data.hint }));
+    } catch (e) {
+      console.error("Hint error:", e);
+      setHints(prev => ({ ...prev, [id]: `!!! ${e.message}` }));
+    } finally {
+      setLoadingHints(prev => ({ ...prev, [id]: false }));
+    }
+  };
 
   const getDifficultyClass = (difficulty) => {
     if (!difficulty) return 'difficulty-medium';
@@ -84,6 +121,13 @@ function App() {
 
                 <h3 className="question-text">{q.question}</h3>
 
+                {hints[q.id] && (
+                  <div className="hint-container">
+                    <strong>AI Hint:</strong>
+                    <p className="hint-text">{hints[q.id]}</p>
+                  </div>
+                )}
+
                 <div className="card-footer">
                   <div className="category-tag">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -91,6 +135,13 @@ function App() {
                     </svg>
                     {q.category}
                   </div>
+                  <button 
+                    className="hint-btn" 
+                    onClick={() => fetchHint(q.id)}
+                    disabled={loadingHints[q.id]}
+                  >
+                    {loadingHints[q.id] ? "Thinking..." : (hints[q.id] ? "Refresh Hint" : "Get AI Hint")}
+                  </button>
                 </div>
               </div>
             ))}
