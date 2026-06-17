@@ -30,7 +30,7 @@ interview questions allowing them to simulate realistic interview conditions and
 | `ansible/`           | Ansible playbooks for VM configuration and application deployment         |
 | `infra/`             | Infrastructure configuration                                              |
 | `.github/workflows/` | CI/CD workflows                                                           |
-| `docker-compose.yml` | Orchestrates the full system (Client, Server, DB)                         |
+| `docker-compose.yml` | Orchestrates the full system (Client, Server, GenAI, DB)                  |
 | `.env.example`       | Template for environment variables                                        |
 | `README.md`          | Project overview, setup instructions, and repository structure            |
 
@@ -155,13 +155,13 @@ GENAI_BACKEND=local
 
 ### Fallback Strategy
 
-The service follows a resilient fallback chain:
+When `GENAI_BACKEND=gemini`, the service follows a resilient fallback chain: 
 
 1. Gemini API
 2. Local Ollama model
 3. Simulated fallback hint
 
-This ensures that hint generation remains available even if external services become unavailable.
+When `GENAI_BACKEND=local`, Ollama is the sole backend — if it is unreachable, the service returns 503.
 
 ---
 
@@ -177,6 +177,7 @@ The Helm chart packages the complete application stack, including:
 - Kubernetes Services
 - ConfigMaps
 - Ingress routing
+- GenAI FastAPI microservice
 
 All deployment-specific configuration is externalized through Helm values to ensure reproducible and consistent deployments across environments.
 
@@ -309,8 +310,8 @@ This starts the complete application stack:
 
 - React frontend
 - Spring Boot backend
-- PostgreSQL database
 - GenAI FastAPI service
+- PostgreSQL database
 
 The services will be available at: http://localhost:3000
 
@@ -332,11 +333,12 @@ LOCAL_MODEL_URL=http://host.docker.internal:11434/api/generate
 
 ### Exposed Ports
 
-| Component | Host Port | Internal Port |
-| --------- | --------- | ------------- |
-| Client    | 3000      | 80            |
-| Server    | 8080      | 8080          |
-| Database  | 5432      | 5432          |
+| Component | Host Port   | Internal Port |
+| --------- | ----------- | ------------- |
+| Client    | 3000        | 80            |
+| Server    | 8080        | 8080          |
+| GenAI     | not exposed | 8000          |
+| Database  | 5432        | 5432          |
 
 ---
 
@@ -377,12 +379,20 @@ The project uses a `.env` file for configuration. Sane defaults are provided in 
 
 Ensure you have a PostgreSQL database running locally and matching the configuration in `server/src/main/resources/application.yaml`.
 
+When running the backend without Docker, set the GenAI service URL to the locally running GenAI service:
+
+```bash
+export GENAI_SERVICE_URL=http://localhost:8000
+```
+
 ```bash
 cd server
 ./mvnw spring-boot:run
 ```
 
 Runs at `http://localhost:8080`
+
+---
 
 ### Frontend Setup
 
@@ -393,6 +403,26 @@ npm run dev
 ```
 
 Runs at `http://localhost:5173`
+
+---
+
+### GenAI Service Setup
+
+The GenAI service can be started locally from the `genai/` directory.
+
+```bash
+cd genai
+pip install -r requirements.txt
+uvicorn main:app --host 0.0.0.0 --port 8000
+```
+
+Runs at `http://localhost:8000`
+
+Health check: 
+
+```bash
+curl http://localhost:8000/health
+```
 
 ---
 
