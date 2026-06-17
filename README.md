@@ -4,8 +4,7 @@
 
 The AI Mock Interview Platform is a web application designed to help software engineering
 candidates prepare for technical job interviews. Users are presented with AI-curated
-interview questions allowing them to simulate
-realistic interview conditions and identify skill gaps before the real thing.
+interview questions allowing them to simulate realistic interview conditions and identify skill gaps before the real thing.
 
 ---
 
@@ -25,12 +24,13 @@ realistic interview conditions and identify skill gaps before the real thing.
 | -------------------- | ------------------------------------------------------------------------- |
 | `client/`            | React + Vite frontend application                                         |
 | `server/`            | Spring Boot REST API (interview question service)                         |
+| `genai/`             | FastAPI-based GenAI microservice                                          |
 | `helm/`              | Helm chart for Kubernetes deployment on the AET Cluster                   |
 | `terraform/`         | Production-grade Terraform configurations for provisioning Azure VM       |
 | `ansible/`           | Ansible playbooks for VM configuration and application deployment         |
 | `infra/`             | Infrastructure configuration                                              |
 | `.github/workflows/` | CI/CD workflows                                                           |
-| `docker-compose.yml` | Orchestrates the full system (Client, Server, DB)                         |
+| `docker-compose.yml` | Orchestrates the full system (Client, Server, GenAI, DB)                  |
 | `.env.example`       | Template for environment variables                                        |
 | `README.md`          | Project overview, setup instructions, and repository structure            |
 
@@ -128,6 +128,43 @@ ansible-playbook -i inventory.ini playbook.yml
 
 ---
 
+## GenAI Service
+
+The platform includes a dedicated FastAPI-based GenAI microservice that acts as the AI layer of the system. It currently generates contextual hints for interview questions and provides a foundation for future capabilities such as AI-generated questions, answer evaluation, and interview feedback.
+
+### Supported Backends
+
+The GenAI service supports two inference modes:
+
+| Backend  | Description                        |
+|----------|------------------------------------|
+| gemini   | Uses Google's Gemini API           |
+| local    | Uses a locally hosted Ollama model |
+
+The active backend is selected through:
+
+```bash
+GENAI_BACKEND=gemini
+```
+
+or
+
+```bash
+GENAI_BACKEND=local
+```
+
+### Fallback Strategy
+
+When `GENAI_BACKEND=gemini`, the service follows a resilient fallback chain: 
+
+1. Gemini API
+2. Local Ollama model
+3. Simulated fallback hint
+
+When `GENAI_BACKEND=local`, Ollama is the sole backend — if it is unreachable, the service returns 503.
+
+---
+
 ## Kubernetes Deployment (Helm)
 
 The AI Mock Interview Platform is deployed on the AET Kubernetes Cluster using Helm.
@@ -140,6 +177,7 @@ The Helm chart packages the complete application stack, including:
 - Kubernetes Services
 - ConfigMaps
 - Ingress routing
+- GenAI FastAPI microservice
 
 All deployment-specific configuration is externalized through Helm values to ensure reproducible and consistent deployments across environments.
 
@@ -175,7 +213,15 @@ kubectl create secret generic interview-db-secrets \
   --namespace <YOUR_TUM_ID>-devops26
 ```
 
-Step 4: Create the GitHub Container Registry secret:
+Step 4: Create the GenAI secret:
+
+```bash
+kubectl create secret generic genai-secrets \
+  --from-literal=GEMINI_API_KEY=<YOUR_API_KEY> \
+  --namespace <YOUR_TUM_ID>-devops26
+```
+
+Step 5: Create the GitHub Container Registry secret:
 
 ```bash
 kubectl create secret docker-registry ghcr-secret \
@@ -185,12 +231,13 @@ kubectl create secret docker-registry ghcr-secret \
   --namespace <YOUR_TUM_ID>-devops26
 ```
 
-Step 5: Install or upgrade the release:
+Step 6: Install or upgrade the release:
 
 ```bash
 helm upgrade --install interview-app ./helm/interview-app \
   --namespace <YOUR_TUM_ID>-devops26 \
-  --set tumid="<YOUR_TUM_ID>"
+  --set tumid="<YOUR_TUM_ID>" \
+  --set githubUsername="<YOUR_GITHUB_USERNAME>"
 ```
 
 ### Validation (Optional)
@@ -198,14 +245,17 @@ helm upgrade --install interview-app ./helm/interview-app \
 Verify the Helm chart structure and syntax:
 
 ```bash
-helm lint ./helm/interview-app --set tumid="<YOUR_TUM_ID>"
+helm lint ./helm/interview-app \
+  --set tumid="<YOUR_TUM_ID>" \
+  --set githubUsername="<YOUR_GITHUB_USERNAME>"
 ```
 
 Render the Kubernetes manifests locally before deployment:
 
 ```bash
 helm template interview-app ./helm/interview-app \
-  --set tumid="<YOUR_TUM_ID>"
+  --set tumid="<YOUR_TUM_ID>" \
+  --set githubUsername="<YOUR_GITHUB_USERNAME>"
 ```
 
 ### Public Access
@@ -256,16 +306,39 @@ cp .env.example .env
 # Start all services
 docker compose up --build
 ```
+This starts the complete application stack:
+
+- React frontend
+- Spring Boot backend
+- GenAI FastAPI service
+- PostgreSQL database
 
 The services will be available at: http://localhost:3000
 
+### Using Gemini
+
+Edit `.env`:
+
+```env
+GENAI_BACKEND=gemini
+GEMINI_API_KEY=<YOUR_API_KEY>
+```
+
+### Using Local Models (Ollama)
+
+```env
+GENAI_BACKEND=local
+LOCAL_MODEL_URL=http://host.docker.internal:11434/api/generate
+```
+
 ### Exposed Ports
 
-| Component | Host Port | Internal Port |
-| --------- | --------- | ------------- |
-| Client    | 3000      | 80            |
-| Server    | 8080      | 8080          |
-| Database  | 5432      | 5432          |
+| Component | Host Port   | Internal Port |
+| --------- | ----------- | ------------- |
+| Client    | 3000        | 80            |
+| Server    | 8080        | 8080          |
+| GenAI     | not exposed | 8000          |
+| Database  | 5432        | 5432          |
 
 ---
 
@@ -273,17 +346,21 @@ The services will be available at: http://localhost:3000
 
 The project uses a `.env` file for configuration. Sane defaults are provided in `.env.example`.
 
-| Variable            | Default Value       | Description                                      |
-| ------------------- | ------------------- | ------------------------------------------------ |
-| `DB_HOST`           | `db`                | Database hostname (service name in compose)      |
-| `DB_PORT`           | `5432`              | Database port                                    |
-| `DB_NAME`           | `interview_db`      | Name of the PostgreSQL database                  |
-| `DB_USERNAME`       | `postgres`          | Database username                                |
-| `DB_PASSWORD`       | `postgres`          | Database password                                |
-| `POSTGRES_DB`       | `interview_db`      | DB name for PostgreSQL container initialization |
-| `POSTGRES_USER`     | `postgres`          | DB user for PostgreSQL container initialization |
-| `POSTGRES_PASSWORD` | `postgres`          | DB password for PostgreSQL container init       |
+| Variable            | Default Value           | Description                                      |
+| ------------------- | -------------------     | ------------------------------------------------ |
+| `DB_HOST`           | `db`                    | Database hostname (service name in compose)      |
+| `DB_PORT`           | `5432`                  | Database port                                    |
+| `DB_NAME`           | `interview_db`          | Name of the PostgreSQL database                  |
+| `DB_USERNAME`       | `postgres`              | Database username                                |
+| `DB_PASSWORD`       | `postgres`              | Database password                                |
+| `POSTGRES_DB`       | `interview_db`          | DB name for PostgreSQL container initialization  |
+| `POSTGRES_USER`     | `postgres`              | DB user for PostgreSQL container initialization  |
+| `POSTGRES_PASSWORD` | `postgres`              | DB password for PostgreSQL container init        |
 | `VITE_API_URL`      | `http://localhost:8080` | URL of the backend API for the client        |
+| `GEMINI_API_KEY`    | `empty`                 | Gemini API key used when GENAI_BACKEND=gemini    |
+| `GENAI_BACKEND`     | `local`                 | Selects the active AI backend (local or gemini)  |
+| `LOCAL_MODEL_URL`   | `http://host.docker.internal:11434/api/generate` | Ollama/local model endpoint |
+| `GENAI_SERVICE_URL` | `http://genai:8000`     | Internal GenAI service URL                       |
 
 ---
 
@@ -302,12 +379,20 @@ The project uses a `.env` file for configuration. Sane defaults are provided in 
 
 Ensure you have a PostgreSQL database running locally and matching the configuration in `server/src/main/resources/application.yaml`.
 
+When running the backend without Docker, set the GenAI service URL to the locally running GenAI service:
+
+```bash
+export GENAI_SERVICE_URL=http://localhost:8000
+```
+
 ```bash
 cd server
 ./mvnw spring-boot:run
 ```
 
 Runs at `http://localhost:8080`
+
+---
 
 ### Frontend Setup
 
@@ -321,11 +406,32 @@ Runs at `http://localhost:5173`
 
 ---
 
+### GenAI Service Setup
+
+The GenAI service can be started locally from the `genai/` directory.
+
+```bash
+cd genai
+pip install -r requirements.txt
+uvicorn main:app --host 0.0.0.0 --port 8000
+```
+
+Runs at `http://localhost:8000`
+
+Health check: 
+
+```bash
+curl http://localhost:8000/health
+```
+
+---
+
 ## REST Endpoints
 
-| Method | Path                       | Description                     |
-| ------ | -------------------------- | ------------------------------- |
-| GET    | `/api/interview/questions` | Returns all interview questions |
+| Method | Path                                 | Description                                    |
+| ------ | ------------------------------------ | ---------------------------------------------- |
+| GET    | `/api/interview/questions`           | Returns all interview questions                |
+| POST   | `/api/interview/questions/{id}/hint` | Generates an AI hint for the selected question |
 
 ---
 
