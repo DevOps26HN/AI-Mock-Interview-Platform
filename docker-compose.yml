@@ -59,6 +59,18 @@ services:
     networks:
       - app-network
 
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: interview-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    depends_on:
+      - server
+    networks:
+      - app-network
+
 networks:
   app-network:
     driver: bridge
