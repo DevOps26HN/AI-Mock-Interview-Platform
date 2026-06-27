@@ -21,3 +21,15 @@ server:
 
 genai:
   url: ${GENAI_SERVICE_URL:http://genai:8000}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    tags:
+      application: ai-mock-interview-server
