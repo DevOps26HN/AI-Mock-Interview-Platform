@@ -1,0 +1,11 @@
+groups:
+  - name: interview-platform-alerts
+    rules:
+      - alert: ServerDown
+        expr: up{job="server"} == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Interview server is down"
+          description: "Prometheus cannot scrape the Spring Boot server metrics endpoint."
