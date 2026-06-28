@@ -5,6 +5,7 @@ import requests
 import json
 import logging
 import traceback
+from prometheus_fastapi_instrumentator import Instrumentator
 
 # Configure logging to be more descriptive
 logging.basicConfig(
@@ -14,6 +15,7 @@ logging.basicConfig(
 logger = logging.getLogger("genai-service")
 
 app = FastAPI()
+Instrumentator().instrument(app).expose(app)
 
 class HintRequest(BaseModel):
     question: str

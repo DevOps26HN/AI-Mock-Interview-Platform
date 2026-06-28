@@ -20,6 +20,12 @@ data:
           - targets:
               - "server-service:{{ .Values.server.service.port }}"
 
+      - job_name: "genai"
+        metrics_path: "/metrics"
+        static_configs:
+          - targets:
+              - "genai:{{ .Values.genai.service.port }}"
+
   alerts.yml: |
     groups:
       - name: interview-platform-alerts
