@@ -1,0 +1,32 @@
+{{- if .Values.monitoring.grafana.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-config
+  labels:
+    app: grafana
+data:
+  prometheus-datasource.yml: |
+    apiVersion: 1
+
+    datasources:
+      - name: Prometheus
+        uid: prometheus
+        type: prometheus
+        access: proxy
+        url: http://prometheus:{{ .Values.monitoring.prometheus.service.port }}
+        isDefault: true
+
+  dashboards.yml: |
+    apiVersion: 1
+
+    providers:
+      - name: Interview Dashboards
+        orgId: 1
+        folder: Interview Platform
+        type: file
+        disableDeletion: false
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards
+{{- end }}
