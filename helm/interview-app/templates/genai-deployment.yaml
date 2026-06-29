@@ -29,6 +29,18 @@ spec:
             - name: http
               containerPort: {{ .Values.genai.service.targetPort }}
               protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
           env:
             - name: GENAI_BACKEND
               value: {{ .Values.genai.backend | quote }}
