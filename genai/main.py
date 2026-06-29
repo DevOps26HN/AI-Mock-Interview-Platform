@@ -1,11 +1,12 @@
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 import os
 import requests
 import json
 import logging
 import traceback
 from prometheus_fastapi_instrumentator import Instrumentator
+from prometheus_client import Counter
 
 # Configure logging to be more descriptive
 logging.basicConfig(
@@ -17,17 +18,25 @@ logger = logging.getLogger("genai-service")
 app = FastAPI()
 Instrumentator().instrument(app).expose(app)
 
+# Custom Prometheus metrics for tracking request routing and fallback rates
+genai_requests_total = Counter(
+    "genai_requests_total",
+    "Total requests to GenAI hint generator, partitioned by backend and source",
+    ["backend", "source"]
+)
+
 class HintRequest(BaseModel):
-    question: str
-    role: str
-    category: str
+    question: str = Field(..., max_length=2000)
+    role: str = Field(..., max_length=100)
+    category: str = Field(..., max_length=100)
 
 class HintResponse(BaseModel):
     hint: str
+    source: str
 
 GENAI_BACKEND = os.getenv("GENAI_BACKEND", "local")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-flash-lite-latest")
+GEMINI_MODEL = os.getenv("GENAI_MODEL", "gemini-flash-lite-latest")
 LOCAL_MODEL_URL = os.getenv("LOCAL_MODEL_URL", "http://localhost:11434/api/generate")
 
 def get_gemini_hint(question, role, category):
@@ -91,7 +100,6 @@ def get_local_hint(question, role, category):
         "stream": False
     }
 
-    
     try:
         response = requests.post(LOCAL_MODEL_URL, json=payload, timeout=10)
         if response.status_code == 200:
@@ -115,13 +123,15 @@ async def generate_hint(request: HintRequest):
         
         try:
             hint = get_gemini_hint(request.question, request.role, request.category)
-            return HintResponse(hint=hint)
+            genai_requests_total.labels(backend="gemini", source="gemini").inc()
+            return HintResponse(hint=hint, source="gemini")
         except HTTPException as he:
             logger.info(f"--- Gemini failed ({he.status_code}), checking local.")
             # Try local model as fallback
             hint = get_local_hint(request.question, request.role, request.category)
             if hint:
-                return HintResponse(hint=hint)
+                genai_requests_total.labels(backend="gemini", source="local").inc()
+                return HintResponse(hint=hint, source="local")
             
             # If everything fails, return a simulated hint to maintain UX
             logger.warning("!!! All AI backends failed. Returning simulated hint.")
@@ -130,7 +140,8 @@ async def generate_hint(request: HintRequest):
                 f"focus on demonstrating your understanding of '{request.question[:40]}...'. "
                 "Try to provide a concrete example from your experience."
             )
-            return HintResponse(hint=simulated_hint)
+            genai_requests_total.labels(backend="gemini", source="simulated").inc()
+            return HintResponse(hint=simulated_hint, source="simulated")
     
     # Direct local path
     hint = get_local_hint(request.question, request.role, request.category)
@@ -138,15 +149,8 @@ async def generate_hint(request: HintRequest):
         logger.error("!!! All inference methods failed.")
         raise HTTPException(status_code=503, detail="AI Hint service currently unavailable")
     
-    return HintResponse(hint=hint)
-    
-    # Direct local path
-    hint = get_local_hint(request.question, request.role, request.category)
-    if not hint:
-        logger.error("!!! All inference methods failed.")
-        raise HTTPException(status_code=503, detail="AI Hint service currently unavailable")
-    
-    return HintResponse(hint=hint)
+    genai_requests_total.labels(backend="local", source="local").inc()
+    return HintResponse(hint=hint, source="local")
 
 @app.get("/health")
 async def health():
