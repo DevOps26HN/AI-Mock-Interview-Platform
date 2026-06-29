@@ -1,0 +1,35 @@
+{{- if .Values.monitoring.prometheus.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+  labels:
+    app: prometheus
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: {{ .Values.monitoring.prometheus.scrapeInterval }}
+
+    rule_files:
+      - /etc/prometheus/alerts.yml
+
+    scrape_configs:
+      - job_name: "server"
+        metrics_path: "/actuator/prometheus"
+        static_configs:
+          - targets:
+              - "server-service:{{ .Values.server.service.port }}"
+
+  alerts.yml: |
+    groups:
+      - name: interview-platform-alerts
+        rules:
+          - alert: ServerDown
+            expr: up{job="server"} == 0
+            for: {{ .Values.monitoring.prometheus.alertFor }}
+            labels:
+              severity: critical
+            annotations:
+              summary: "Interview server metrics endpoint is down"
+              description: "Prometheus cannot scrape the Spring Boot server metrics endpoint."
+{{- end }}
