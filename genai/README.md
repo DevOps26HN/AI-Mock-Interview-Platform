@@ -6,9 +6,9 @@ This directory contains the FastAPI-based **GenAI Microservice** that serves as 
 
 ## Architecture & Core Files
 
-* **Main Application**: [main.py](file:///c:/Users/huhan/Documents/Projects/AI-Mock-Interview-Platform/genai/main.py)
-* **Dependency Declarations**: [requirements.txt](file:///c:/Users/huhan/Documents/Projects/AI-Mock-Interview-Platform/genai/requirements.txt)
-* **Container Build Instructions**: [Dockerfile](file:///c:/Users/huhan/Documents/Projects/AI-Mock-Interview-Platform/genai/Dockerfile)
+* **Main Application**: [main.py](main.py)
+* **Dependency Declarations**: [requirements.txt](requirements.txt)
+* **Container Build Instructions**: [Dockerfile](Dockerfile)
 
 ---
 
@@ -67,7 +67,7 @@ The service is fully instrumented to expose runtime telemetry to Prometheus:
 
 ## Configuration & Environment Variables
 
-These variables configure the FastAPI container. They can be set in the main [.env](file:///c:/Users/huhan/Documents/Projects/AI-Mock-Interview-Platform/.env) file at the root of the repository.
+These variables configure the FastAPI container. They can be set in the main [.env](../.env) file at the root of the repository.
 
 | Environment Variable | Default Value | Description |
 |---|---|---|

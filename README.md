@@ -134,7 +134,7 @@ ansible-playbook -i inventory.ini playbook.yml
 The platform includes a dedicated FastAPI-based GenAI microservice that acts as the AI layer of the system. It currently generates contextual hints for interview questions and provides a foundation for future capabilities such as AI-generated questions, answer evaluation, and interview feedback.
 
 > [!NOTE]
-> For a detailed architectural overview, API endpoints, resilient fallback flows, local development setup, and observability testing instructions, see the [GenAI Microservice README](file:///c:/Users/huhan/Documents/Projects/AI-Mock-Interview-Platform/genai/README.md).
+> For a detailed architectural overview, API endpoints, resilient fallback flows, local development setup, and observability testing instructions, see the [GenAI Microservice README](genai/README.md).
 
 ### Supported Backends
 
@@ -179,7 +179,7 @@ To ensure reliability, track request latency, and monitor the AI fallback mechan
 * **Fallback & Backend Routing (GenAI)**: A custom counter metric `genai_requests_total` is partitioned by `backend` (configured backend) and `source` (`gemini`, `local` fallback, or `simulated` fallback) to track fallback occurrences.
 
 ### 2. Alerting Configurations
-Prometheus is configured with alert rules under [alerts.yml](file:///c:/Users/huhan/Documents/Projects/AI-Mock-Interview-Platform/monitoring/prometheus/alerts.yml):
+Prometheus is configured with alert rules under [alerts.yml](monitoring/prometheus/alerts.yml):
 * **`GenaiDown`**: Critical alert triggered if the GenAI container goes offline (`up{job="genai"} == 0` for 30s).
 * **`GenaiHighErrorRate`**: Warning alert triggered if GenAI 5xx errors exceed 10% of total requests inside a 5-minute window (`for: 1m`).
 
@@ -189,7 +189,7 @@ A custom Grafana dashboard (**AI Mock Interview Platform Observability**) is pro
 * **GenAI Total Requests**, **Error Rate**, and **Average Latency**.
 
 > [!TIP]
-> For instructions on how to simulate and verify these alerts locally or on the AET Kubernetes cluster, see the **Testing & Verification** section in the [GenAI Microservice README](file:///c:/Users/huhan/Documents/Projects/AI-Mock-Interview-Platform/genai/README.md).
+> For instructions on how to simulate and verify these alerts locally or on the AET Kubernetes cluster, see the **Testing & Verification** section in the [GenAI Microservice README](genai/README.md).
 
 ---
 
