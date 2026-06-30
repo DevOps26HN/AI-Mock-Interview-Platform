@@ -7,8 +7,8 @@ Determine the image repository.
 {{- $context := index . 0 -}}
 {{- $component := index . 1 -}}
 {{- $registry := $context.Values.image.registry | default "ghcr.io" -}}
-{{- $username := $context.Values.githubUsername | default $context.Values.image.githubUsername -}}
-{{- $project := $context.Values.image.project | default "ai-mock-interview-platform" -}}
+{{- $username := ($context.Values.githubUsername | default $context.Values.image.githubUsername) | lower -}}
+{{- $project := ($context.Values.image.project | default "ai-mock-interview-platform") | lower -}}
 {{- if not $username -}}
 {{-   fail "ERROR: githubUsername must be provided either in values.yaml or via --set githubUsername=<name>" -}}
 {{- end -}}

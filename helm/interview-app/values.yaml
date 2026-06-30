@@ -7,12 +7,12 @@ tumid: ""
 namespace: ""
 
 # Global image configuration to avoid hardcoding
-# githubUsername (Required: set via --set githubUsername=<name>)
-githubUsername: "" 
+# githubUsername
+githubUsername: "DevOps26HN" 
 
 image:
   registry: ghcr.io
-  githubUsername: ""
+  githubUsername: "DevOps26HN"
   project: ai-mock-interview-platform
   tag: latest
   pullPolicy: Always

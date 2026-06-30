@@ -2,6 +2,8 @@ package com.apexpredators.interview_service.service;
 
 import com.apexpredators.interview_service.model.InterviewQuestion;
 import com.apexpredators.interview_service.repository.InterviewQuestionRepository;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,13 +24,15 @@ public class InterviewQuestionService {
 
     private final InterviewQuestionRepository interviewQuestionRepository;
     private final RestTemplate restTemplate;
+    private final MeterRegistry meterRegistry;
 
     @Value("${genai.url:http://localhost:8000}")
     private String genAiUrl;
 
-    public InterviewQuestionService(InterviewQuestionRepository interviewQuestionRepository, RestTemplate restTemplate) {
+    public InterviewQuestionService(InterviewQuestionRepository interviewQuestionRepository, RestTemplate restTemplate, MeterRegistry meterRegistry) {
         this.interviewQuestionRepository = interviewQuestionRepository;
         this.restTemplate = restTemplate;
+        this.meterRegistry = meterRegistry;
     }
 
     public List<InterviewQuestion> getInterviewQuestions() {
@@ -52,6 +56,10 @@ public class InterviewQuestionService {
         String endpoint = genAiUrl + "/generate-hint";
         logger.info("Calling GenAI service at: {}", endpoint);
 
+        Timer.Sample sample = Timer.start(meterRegistry);
+        String status = "200";
+        String outcome = "SUCCESS";
+
         try {
             Map<String, Object> response = restTemplate.postForObject(endpoint, request, Map.class);
             if (response != null && response.containsKey("hint")) {
@@ -59,13 +67,26 @@ public class InterviewQuestionService {
                 return (String) response.get("hint");
             }
             logger.error("Invalid response format from GenAI service for ID: {}", id);
+            status = "500";
+            outcome = "SERVER_ERROR";
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Invalid response from GenAI service");
         } catch (org.springframework.web.client.HttpStatusCodeException e) {
             logger.error("GenAI service returned error status {}: {}", e.getStatusCode(), e.getResponseBodyAsString());
+            status = String.valueOf(e.getStatusCode().value());
+            outcome = e.getStatusCode().is5xxServerError() ? "SERVER_ERROR" : "CLIENT_ERROR";
             throw new ResponseStatusException(e.getStatusCode(), "GenAI error: " + e.getResponseBodyAsString(), e);
         } catch (Exception e) {
             logger.error("Failed to generate hint for question ID: {}. Error: {}", id, e.getMessage());
+            status = "500";
+            outcome = "SERVER_ERROR";
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error generating hint: " + e.getMessage(), e);
+        } finally {
+            sample.stop(Timer.builder("http_client_requests_seconds")
+                    .tag("client_name", "genai")
+                    .tag("uri", "/generate-hint")
+                    .tag("status", status)
+                    .tag("outcome", outcome)
+                    .register(meterRegistry));
         }
     }
 }

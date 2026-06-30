@@ -236,8 +236,7 @@ Step 6: Install or upgrade the release:
 ```bash
 helm upgrade --install interview-app ./helm/interview-app \
   --namespace <YOUR_TUM_ID>-devops26 \
-  --set tumid="<YOUR_TUM_ID>" \
-  --set githubUsername="<YOUR_GITHUB_USERNAME>"
+  --set tumid="<YOUR_TUM_ID>"
 ```
 
 ### Validation (Optional)
@@ -246,16 +245,14 @@ Verify the Helm chart structure and syntax:
 
 ```bash
 helm lint ./helm/interview-app \
-  --set tumid="<YOUR_TUM_ID>" \
-  --set githubUsername="<YOUR_GITHUB_USERNAME>"
+  --set tumid="<YOUR_TUM_ID>"
 ```
 
 Render the Kubernetes manifests locally before deployment:
 
 ```bash
 helm template interview-app ./helm/interview-app \
-  --set tumid="<YOUR_TUM_ID>" \
-  --set githubUsername="<YOUR_GITHUB_USERNAME>"
+  --set tumid="<YOUR_TUM_ID>"
 ```
 
 ### Public Access

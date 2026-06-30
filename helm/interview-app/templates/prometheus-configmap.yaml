@@ -20,6 +20,12 @@ data:
           - targets:
               - "server-service:{{ .Values.server.service.port }}"
 
+      - job_name: "genai"
+        metrics_path: "/metrics"
+        static_configs:
+          - targets:
+              - "genai:{{ .Values.genai.service.port }}"
+
   alerts.yml: |
     groups:
       - name: interview-platform-alerts
@@ -32,4 +38,22 @@ data:
             annotations:
               summary: "Interview server metrics endpoint is down"
               description: "Prometheus cannot scrape the Spring Boot server metrics endpoint."
+
+          - alert: GenaiDown
+            expr: up{job="genai"} == 0
+            for: {{ .Values.monitoring.prometheus.alertFor }}
+            labels:
+              severity: critical
+            annotations:
+              summary: "GenAI service is down"
+              description: "Prometheus cannot scrape the GenAI service metrics endpoint."
+
+          - alert: GenaiHighErrorRate
+            expr: (sum(rate(http_requests_total{job="genai",status=~"5.."}[5m])) or vector(0)) / (sum(rate(http_requests_total{job="genai"}[5m])) or vector(1)) > 0.1
+            for: 1m
+            labels:
+              severity: warning
+            annotations:
+              summary: "GenAI high error rate detected"
+              description: "GenAI service error rate is above 10% in the last 5 minutes."
 {{- end }}
