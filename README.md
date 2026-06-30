@@ -29,6 +29,7 @@ interview questions allowing them to simulate realistic interview conditions and
 | `terraform/`         | Production-grade Terraform configurations for provisioning Azure VM       |
 | `ansible/`           | Ansible playbooks for VM configuration and application deployment         |
 | `infra/`             | Infrastructure configuration                                              |
+| `monitoring/`        | Prometheus alerts and Grafana dashboard configurations                    |
 | `.github/workflows/` | CI/CD workflows                                                           |
 | `docker-compose.yml` | Orchestrates the full system (Client, Server, GenAI, DB)                  |
 | `.env.example`       | Template for environment variables                                        |
@@ -132,6 +133,9 @@ ansible-playbook -i inventory.ini playbook.yml
 
 The platform includes a dedicated FastAPI-based GenAI microservice that acts as the AI layer of the system. It currently generates contextual hints for interview questions and provides a foundation for future capabilities such as AI-generated questions, answer evaluation, and interview feedback.
 
+> [!NOTE]
+> For a detailed architectural overview, API endpoints, resilient fallback flows, local development setup, and observability testing instructions, see the [GenAI Microservice README](file:///c:/Users/huhan/Documents/Projects/AI-Mock-Interview-Platform/genai/README.md).
+
 ### Supported Backends
 
 The GenAI service supports two inference modes:
@@ -162,6 +166,30 @@ When `GENAI_BACKEND=gemini`, the service follows a resilient fallback chain:
 3. Simulated fallback hint
 
 When `GENAI_BACKEND=local`, Ollama is the sole backend — if it is unreachable, the service returns 503.
+
+---
+
+## Observability & Monitoring
+
+To ensure reliability, track request latency, and monitor the AI fallback mechanisms, the platform integrates a complete observability stack consisting of **Prometheus** and **Grafana**.
+
+### 1. Telemetry & Metrics
+* **Outbound Call Tracking (Server)**: The Spring Boot server measures request count, HTTP status codes, and latency (`http_client_requests_seconds`) when calling the GenAI microservice.
+* **Microservice Traffic Tracking (GenAI)**: The FastAPI service captures incoming request rates, error responses (5xx), and duration via `prometheus_fastapi_instrumentator`.
+* **Fallback & Backend Routing (GenAI)**: A custom counter metric `genai_requests_total` is partitioned by `backend` (configured backend) and `source` (`gemini`, `local` fallback, or `simulated` fallback) to track fallback occurrences.
+
+### 2. Alerting Configurations
+Prometheus is configured with alert rules under [alerts.yml](file:///c:/Users/huhan/Documents/Projects/AI-Mock-Interview-Platform/monitoring/prometheus/alerts.yml):
+* **`GenaiDown`**: Critical alert triggered if the GenAI container goes offline (`up{job="genai"} == 0` for 30s).
+* **`GenaiHighErrorRate`**: Warning alert triggered if GenAI 5xx errors exceed 10% of total requests inside a 5-minute window (`for: 1m`).
+
+### 3. Grafana Dashboards
+A custom Grafana dashboard (**AI Mock Interview Platform Observability**) is provisioned under `monitoring/grafana/` to visualize:
+* **GenAI Inference & Fallback Source Distribution** (`genai_requests_total` split by backend/source).
+* **GenAI Total Requests**, **Error Rate**, and **Average Latency**.
+
+> [!TIP]
+> For instructions on how to simulate and verify these alerts locally or on the AET Kubernetes cluster, see the **Testing & Verification** section in the [GenAI Microservice README](file:///c:/Users/huhan/Documents/Projects/AI-Mock-Interview-Platform/genai/README.md).
 
 ---
 
@@ -305,12 +333,14 @@ docker compose up --build
 ```
 This starts the complete application stack:
 
-- React frontend
-- Spring Boot backend
-- GenAI FastAPI service
-- PostgreSQL database
+- React frontend (http://localhost:3000)
+- Spring Boot backend (http://localhost:8080)
+- GenAI FastAPI service (http://localhost:8000)
+- PostgreSQL database (localhost:5432)
+- Prometheus (http://localhost:9090)
+- Grafana (http://localhost:3001)
 
-The services will be available at: http://localhost:3000
+The frontend application is accessible at: http://localhost:3000
 
 ### Using Gemini
 
@@ -330,12 +360,14 @@ LOCAL_MODEL_URL=http://host.docker.internal:11434/api/generate
 
 ### Exposed Ports
 
-| Component | Host Port   | Internal Port |
-| --------- | ----------- | ------------- |
-| Client    | 3000        | 80            |
-| Server    | 8080        | 8080          |
-| GenAI     | not exposed | 8000          |
-| Database  | 5432        | 5432          |
+| Component  | Host Port   | Internal Port | Description |
+| ---------- | ----------- | ------------- | ----------- |
+| Client     | 3000        | 80            | React Frontend application |
+| Server     | 8080        | 8080          | Spring Boot REST API |
+| GenAI      | not exposed | 8000          | FastAPI GenAI Microservice |
+| Database   | 5432        | 5432          | PostgreSQL Database |
+| Prometheus | 9090        | 9090          | Prometheus Time Series DB |
+| Grafana    | 3001        | 3000          | Grafana Dashboards |
 
 ---
 
